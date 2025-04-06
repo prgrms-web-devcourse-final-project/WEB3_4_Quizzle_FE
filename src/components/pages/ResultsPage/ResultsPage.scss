@@ -1,0 +1,28 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.results-page {
+  height: 850px;
+  padding: $spacing-4;
+  @include flex(column, flex-start, stretch);
+
+  &__title {
+    text-align: center;
+    margin-top: $spacing-5;
+    margin-bottom: $spacing-3;
+  }
+
+  &__content {
+    max-width: 600px;
+    width: 100%;
+    height: 600px;
+    margin: 0 auto;
+    flex: 1;
+  }
+
+  &__actions {
+    @include flex(row, center, center);
+    gap: $spacing-4;
+    margin-top: $spacing-6;
+  }
+}

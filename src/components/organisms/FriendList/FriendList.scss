@@ -1,0 +1,21 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.friend-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &__title {
+    padding: $spacing-4;
+    border-bottom: 1px solid $gray-200;
+    margin-bottom: 0;
+  }
+  
+  &__items {
+    padding: $spacing-4;
+    display: grid;
+    gap: $spacing-3;
+  }
+}
+

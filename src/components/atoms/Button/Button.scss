@@ -1,0 +1,67 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $border-radius;
+  font-weight: $font-weight-medium;
+  transition: all 0.2s ease;
+  border: none;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  // Variants
+  &--primary {
+    @include button-variant($primary, $white, $primary-dark);
+  }
+  
+  &--secondary {
+    @include button-variant($gray-200, $gray-800, $gray-300);
+  }
+  
+  &--outline {
+    background-color: transparent;
+    border: 1px solid $primary;
+    color: $primary;
+    
+    &:hover, &:focus {
+      background-color: rgba($primary, 0.1);
+    }
+  }
+  
+  &--text {
+    background-color: transparent;
+    color: $primary;
+    
+    &:hover, &:focus {
+      background-color: rgba($primary, 0.1);
+    }
+  }
+  
+  // Sizes
+  &--sm {
+    padding: $spacing-1 $spacing-2;
+    font-size: $font-size-sm;
+  }
+  
+  &--md {
+    padding: $spacing-2 $spacing-4;
+    font-size: $font-size-base;
+  }
+  
+  &--lg {
+    padding: $spacing-3 $spacing-5;
+    font-size: $font-size-lg;
+  }
+  
+  // Full width
+  &--full-width {
+    width: 100%;
+  }
+}
+

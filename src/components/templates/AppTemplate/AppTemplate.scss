@@ -1,0 +1,15 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.app-template-container {
+  @include flex(column, flex-start, stretch);
+  height: 100%;
+}
+
+.app-template-header {
+  width: 100%;
+}
+
+.app-template-content {
+  flex: 1;
+}

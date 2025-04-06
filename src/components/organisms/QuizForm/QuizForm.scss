@@ -1,0 +1,15 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.quiz-form {
+  max-width: 500px;
+  margin: 0 auto;
+  
+  &__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-3;
+    margin-top: $spacing-6;
+  }
+}
+

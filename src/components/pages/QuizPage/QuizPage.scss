@@ -1,0 +1,28 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+
+
+.quiz-page {
+  &__progress {
+    font-weight: $font-weight-bold;
+  }
+
+  &__score {
+    font-weight: $font-weight-bold;
+    color: $black;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    height: 900px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+
+  &__player-list {
+    height: 500px;
+  }
+}

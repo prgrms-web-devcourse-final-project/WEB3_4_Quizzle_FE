@@ -1,0 +1,39 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.quiz-question {
+  &__timer {
+    position: relative;
+    height: 8px;
+    background-color: $gray-200;
+    border-radius: $border-radius;
+    margin-bottom: $spacing-4;
+    overflow: hidden;
+
+    &-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background-color: $primary;
+      transition: width 1s linear;
+    }
+
+    &-text {
+      position: absolute;
+      top: -20px;
+      right: 0;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &__title {
+    text-align: center;
+    margin-bottom: $spacing-6;
+  }
+
+  &__options {
+    padding: $spacing-4 0;
+  }
+}
