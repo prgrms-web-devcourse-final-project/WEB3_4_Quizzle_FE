@@ -7,7 +7,7 @@ import "./App.css";
 const App: React.FC = () => {
     return (
         <div className="app">
-            <GoogleOAuthProvider clientId={""}>
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
                 <AdvancedSquareBackground
                     particleCount={100}
                     primaryColor="#853BE1"

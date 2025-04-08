@@ -76,7 +76,7 @@ const GameRoomPage: React.FC = () => {
         <AppTemplate header={<GameRoomHeader roomId={roomId} onStart={handleStart} onLeave={handleLeave}/>}
                      content={<div className="game-room-template__content">
                          <div className="game-room-template__players">
-                             <PlayerList title="플레이어" players={players} maxPlayers={8}/>
+                             <PlayerList title="플레이어" type="grid" players={players} maxPlayers={8}/>
                          </div>
                          <div className="game-room-template__settings">
                              <div className="game-room-template__settings-card">

@@ -59,8 +59,12 @@ const ResultsPage: React.FC = () => {
       id: "8",
       name: "Player 7",
       avatar: "/assets/avatars/avatar7.png",
+      isHost: true,
+      isSubmitted: false,
+      isReady: true,
       score: 100,
-    },{
+    },
+    {
       id: "5",
       name: "Player 6",
       avatar: "/assets/avatars/avatar6.png",

@@ -32,4 +32,5 @@ const responseOnRejected = (axiosError: AxiosError) => {
   return Promise.reject(axiosError);
 };
 
+axiosClient.defaults.withCredentials = true;
 axiosClient.interceptors.response.use(responseOnFulfilled, responseOnRejected);

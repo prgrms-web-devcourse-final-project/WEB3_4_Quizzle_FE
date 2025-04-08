@@ -7,7 +7,9 @@ import ResultsPage from "../pages/ResultsPage/ResultsPage.tsx";
 
 type Route = "LOGIN" | "LOBBY" | "GAME_ROOM" | "QUIZ" | "RESULT";
 
-export const RouteContext = createContext<Route>("LOGIN");
+const DEFAULT_ROUTE: Route = "LOGIN";
+
+export const RouteContext = createContext<Route>(DEFAULT_ROUTE);
 export const RouteDispatchContext = createContext<(routeToChange: Route) => void>(() => {});
 
 const renderPageWith = (route: Route) => {
@@ -26,7 +28,7 @@ const renderPageWith = (route: Route) => {
 }
 
 const RouteContextProvider = () => {
-  const [routeState, setRouteState] = useState<Route>("LOGIN");
+  const [routeState, setRouteState] = useState<Route>(DEFAULT_ROUTE);
 
   const changeHRVServiceZone = (routeToChange: Route) => {
     setRouteState(routeToChange);
