@@ -2,17 +2,11 @@ import type React from "react"
 import Card from "../../atoms/Card/Card"
 import FriendItem from "../../molecules/FriendItem/FriendItem.tsx";
 import "./FriendList.scss"
+import { PlayerListResponse } from "../../../types/response.ts";
 
-export interface Player {
-    id: string
-    name: string
-    avatar?: string
-    online?: boolean
-    score?: number
-}
 
 export interface PlayerListProps {
-    players: Player[]
+    players: PlayerListResponse
 }
 
 const FriendList: React.FC<PlayerListProps> = ({players}) => {
@@ -36,11 +30,11 @@ const FriendList: React.FC<PlayerListProps> = ({players}) => {
             <div style={itemsStyle}>
                 {players.map((player, index) => (
                     <FriendItem
-                        key={player.id}
-                        name={player.name}
-                        avatar={player.avatar}
-                        online={player.online}
-                        score={player.score}
+                        key={player.memberId}
+                        name={player.nickname}
+                        level={player.level}
+                        isOnline={player.isOnline}
+                        acceptedAt={player.acceptedAt}
                         rank={index + 1}
                     />
                 ))}

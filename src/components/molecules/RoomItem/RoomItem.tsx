@@ -7,13 +7,12 @@ import Button from "../../atoms/Button/Button"
 
 export interface QuizItemProps {
   title: string;
-  description: string;
   maxMember: number;
   member: number;
   onStart?: () => void;
 }
 
-const RoomItem: React.FC<QuizItemProps> = ({ title, description, maxMember, member, onStart }) => {
+const RoomItem: React.FC<QuizItemProps> = ({ title, maxMember, member, onStart }: QuizItemProps) => {
   const roomItemStyle = {
     display: "flex",
     flexDirection: "row" as const,
@@ -35,11 +34,6 @@ const RoomItem: React.FC<QuizItemProps> = ({ title, description, maxMember, memb
     fontSize: "1.25rem",
   }
 
-  const descriptionStyle = {
-    color: "#6c757d",
-    marginBottom: 0,
-  }
-
   const actionsStyle = {
     display: "flex",
     flexDirection: "row" as const,
@@ -57,7 +51,6 @@ const RoomItem: React.FC<QuizItemProps> = ({ title, description, maxMember, memb
     <div style={roomItemStyle}>
       <div style={contentStyle}>
         <h3 style={titleStyle}>{title}</h3>
-        <p style={descriptionStyle}>{description}</p>
       </div>
       <div style={actionsStyle}>
         {<div style={scoreStyle}>{`${member} / ${maxMember}`}</div>}

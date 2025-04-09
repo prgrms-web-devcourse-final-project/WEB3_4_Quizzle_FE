@@ -6,14 +6,16 @@ import Avatar from "../../atoms/Avatar/Avatar"
 export interface PlayerItemProps {
     name: string
     avatar?: string
-    online?: boolean
+    level: number
+    isOnline?: boolean
     score?: number
     rank?: number
+    acceptedAt?: string
 }
 
-const FriendItem: React.FC<PlayerItemProps> = ({name, avatar, online = false, score}) => {
-    const renderOnlineText = (online: boolean) => {
-        if (online) {
+const FriendItem: React.FC<PlayerItemProps> = ({name, avatar, level, isOnline, acceptedAt, score}: PlayerItemProps) => {
+    const renderOnlineText = (isOnline: boolean) => {
+        if (isOnline) {
             return "온라인";
         }
 
@@ -65,7 +67,7 @@ const FriendItem: React.FC<PlayerItemProps> = ({name, avatar, online = false, sc
             <Avatar src={avatar} alt={name} size="md"/>
             <div style={infoStyle}>
                 <div style={nameStyle}>{name}</div>
-                <div style={getOnlineStyle(online)}>{renderOnlineText(online)}</div>
+                <div style={getOnlineStyle(isOnline?? false)}>{renderOnlineText(isOnline ?? false)}</div>
             </div>
             {score !== undefined && <div style={scoreStyle}>{score}</div>}
         </div>

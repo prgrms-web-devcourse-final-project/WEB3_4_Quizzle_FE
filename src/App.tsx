@@ -1,5 +1,6 @@
 import React from "react"
 import { ChakraProvider } from "@chakra-ui/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import AdvancedSquareBackground from "./components/atoms/InteractiveBackground/AdvancedSquareBackground.tsx";
 import {GoogleOAuthProvider} from "@react-oauth/google";
 import RouteContextProvider from "./components/provider/RouteProvider.tsx";
@@ -9,8 +10,23 @@ import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 
 
 const App: React.FC = () => {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: 1,                
+                staleTime: 5 * 60 * 1000,
+                refetchOnWindowFocus: false,
+                refetchOnMount: true,
+            },
+            mutations: {
+                retry: 1,
+            },
+        },
+    })
+
     return (
         <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
                 <ChakraProvider value={chakraTheme}>
                     <div className="app">
                         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
@@ -30,6 +46,7 @@ const App: React.FC = () => {
                         </GoogleOAuthProvider>
                     </div>
                 </ChakraProvider>
+            </QueryClientProvider>
         </ErrorBoundary>
     )
 }

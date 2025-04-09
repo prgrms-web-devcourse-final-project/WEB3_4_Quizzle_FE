@@ -2,21 +2,14 @@ import type React from "react"
 import Card from "../../atoms/Card/Card.tsx"
 import RoomItem from "../../molecules/RoomItem/RoomItem.tsx"
 import "./RoomList.scss"
-
-export interface Room {
-    id: string;
-    title: string;
-    description: string;
-    maxMember: number;
-    member: number;
-}
+import { Room } from "../../../types/response.ts"
 
 export interface IRoomListProps {
     roomList: Room[]
     onQuizStart?: (quizId: string) => void
 }
 
-const RoomList: React.FC<IRoomListProps> = ({roomList, onQuizStart}) => {
+const RoomList: React.FC<IRoomListProps> = ({roomList, onQuizStart}: IRoomListProps) => {
     const titleStyle = {
         padding: "1rem",
         textAlign: "left" as const,
@@ -35,10 +28,9 @@ const RoomList: React.FC<IRoomListProps> = ({roomList, onQuizStart}) => {
                     <RoomItem
                         key={room.id}
                         title={room.title}
-                        description={room.description}
-                        maxMember={room.maxMember}
-                        member={room.member}
-                        onStart={() => onQuizStart && onQuizStart(room.id)}
+                        maxMember={room.capacity}
+                        member={room.currentPlayers}
+                        onStart={() => onQuizStart && onQuizStart(room.id.toString())}
                     />
                 ))}
             </div>

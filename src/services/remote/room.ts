@@ -1,5 +1,15 @@
 import { QuizzleAPI } from "../api";
+import { RoomListResponse } from "../../types/response";
 
+export async function getRoomList(): Promise<RoomListResponse> {
+  try {
+    const response : RoomListResponse = await QuizzleAPI.get("/api/v1/rooms");
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
 export async function createRoom({
   title,
@@ -18,9 +28,8 @@ export async function createRoom({
   password?: string;
   isPrivate?: boolean;
 }) {
-  console.log(title, capacity, difficulty, mainCategory, subCategory, password, isPrivate);
   try {
-    const response = await QuizzleAPI.post("/rooms", {
+    const response = await QuizzleAPI.post("/api/v1/rooms", {
       title,
       capacity,
       difficulty,
@@ -30,6 +39,48 @@ export async function createRoom({
       isPrivate
     });
     console.log(response);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function startGame(roomId: string) {
+  try {
+    const response = await QuizzleAPI.post(`/api/v1/rooms/${roomId}/start`);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function readyGame(roomId: string) {
+  try {
+    const response = await QuizzleAPI.post(`/api/v1/rooms/${roomId}/ready`);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function leaveRoom(roomId: string) {
+  try {
+    const response = await QuizzleAPI.post(`/api/v1/rooms/${roomId}/leave`);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function joinRoom(roomId: string, password?: string) {
+  try {
+    const response = await QuizzleAPI.post(`/api/v1//rooms/${roomId}/join`, {
+      password
+    });
     return response;
   } catch (error) {
     console.error(error);
