@@ -1,9 +1,14 @@
 import type React from "react"
 import Button from "../../../atoms/Button/Button.tsx"
 import Avatar from "../../../atoms/Avatar/Avatar.tsx"
+import { useDisclosure } from "@chakra-ui/react";
+import CreateRoomModal from "../../../modal/CreateRoomModal.tsx";
 
 const LobbyHeader: React.FC = () => {
+
+
   // Inline styles to replace SCSS
+
   const headerStyle = {
     backgroundColor: "#ffffff",
     boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)",
@@ -41,6 +46,13 @@ const LobbyHeader: React.FC = () => {
     gap: "0.75rem",
   }
 
+  const {
+    open: isCreateRoomModalOpen,
+    onClose: onCloseCreateRoomModal,
+    onOpen: onOpenCreateRoomModal,
+  } = useDisclosure();
+
+
   return (
     <header style={headerStyle}>
       <div style={containerStyle}>
@@ -57,10 +69,11 @@ const LobbyHeader: React.FC = () => {
         </div>
 
         <div style={actionsStyle}>
-          <Button variant="primary">방 만들기</Button>
+          <Button onClick={onOpenCreateRoomModal} variant="primary">방 만들기</Button>
           <Avatar src="/assets/avatars/avatar1.png" alt="User" />
         </div>
       </div>
+      <CreateRoomModal isOpen={isCreateRoomModalOpen} onClose={onCloseCreateRoomModal} />
     </header>
   )
 }

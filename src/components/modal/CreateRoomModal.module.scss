@@ -1,0 +1,16 @@
+@import '../../styles/variables';
+
+.createButton {
+  background-color: $primary;
+  color: $white;
+  
+  &:hover {
+    background-color: $primary-dark;
+  }
+}
+
+.cancelButton {
+  &:hover {
+    background-color: $gray-100;
+  }
+} 
