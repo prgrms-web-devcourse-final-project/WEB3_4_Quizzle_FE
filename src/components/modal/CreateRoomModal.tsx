@@ -1,30 +1,71 @@
 import { Dialog, Button, Input, Field} from "@chakra-ui/react";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import Select from "../atoms/Select/Select";
 import Switch from "../atoms/Switch/Switch";
 import { createRoom } from "../../services/remote/room";
 import styles from './CreateRoomModal.module.scss';
+import { RouteDispatchContext } from "../provider/RouteProvider";
+import { useContext } from "react";
+
+type FormValues = {
+  roomName: string;
+  maxPlayers: string;
+  difficulty: "EASY" | "NORMAL" | "HARD";
+  mainCategory: string;
+  subCategory: string;
+  isPrivate: boolean;
+  password: string;
+};
 
 export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  const [roomName, setRoomName] = useState("");
-  const [maxPlayers, setMaxPlayers] = useState("4");
-  const [difficulty, setDifficulty] = useState<string>("EASY");
-  const [mainCategory, setMainCategory] = useState<string>("SCIENCE");
-  const [subCategory, setSubCategory] = useState<string>("PHYSICS");
-  const [isPrivate, setIsPrivate] = useState(false);
-  const [password, setPassword] = useState("");
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
+    defaultValues: {
+      roomName: "",
+      maxPlayers: "4",
+      difficulty: "EASY",
+      mainCategory: "SCIENCE",
+      subCategory: "PHYSICS",
+      isPrivate: false,
+      password: ""
+    }
+  });
 
+  const routerDispatch = useContext(RouteDispatchContext);
 
-  const handleCreateRoom = () => {
-    createRoom({
-      title: roomName,
-      password: isPrivate ? password : "",
-      capacity: Number(maxPlayers),
-      difficulty: difficulty as "EASY" | "MEDIUM" | "HARD",
-      mainCategory,
-      subCategory,
-      isPrivate
+  const isPrivate = watch("isPrivate");
+
+  const onSubmit = async (data: FormValues) => {
+    if (!data.roomName.trim()) {
+      alert("방 이름을 입력해주세요.");
+      return;
+    }
+
+    if (Number(data.maxPlayers) > 8) {
+      alert("최대 인원은 8명을 초과할 수 없습니다.");
+      return;
+    }
+
+    if (data.isPrivate && data.password.length !== 4) {
+      alert("비밀번호는 4자리여야 합니다.");
+      return;
+    }
+
+    const response = await createRoom({
+      title: data.roomName,
+      password: data.isPrivate ? data.password : null,
+      capacity: Number(data.maxPlayers),
+      difficulty: data.difficulty,
+      mainCategory: data.mainCategory,
+      subCategory: data.subCategory,
+      isPrivate: data.isPrivate
     });
+
+    if (response.status < 200 || response.status >= 300) {
+      alert("방 생성에 실패했습니다.");
+      return;
+    }
+    
+    routerDispatch("GAME_ROOM", { roomId: response.id });
   };
 
   return (
@@ -55,23 +96,24 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
             <Field.Root>
               <Field.Label>방 이름</Field.Label>
               <Input 
-                value={roomName}
-                onChange={(e) => setRoomName(e.target.value)}
+                {...register("roomName", { required: "방 이름을 입력해주세요." })}
                 placeholder="방 이름을 입력하세요"
               />
-              <Field.ErrorText />
+              {errors.roomName && <Field.ErrorText>{errors.roomName.message}</Field.ErrorText>}
             </Field.Root>
 
             <Field.Root mt={4}>
               <Field.Label>최대 인원</Field.Label>
               <Input
                 type="number" 
-                value={maxPlayers}
-                onChange={(e) => setMaxPlayers(e.target.value)}
+                {...register("maxPlayers", { 
+                  min: { value: 2, message: "최소 2명 이상이어야 합니다." },
+                  max: { value: 8, message: "최대 8명까지 가능합니다." }
+                })}
                 min={2}
                 max={8}
               />
-              <Field.ErrorText />
+              {errors.maxPlayers && <Field.ErrorText>{errors.maxPlayers.message}</Field.ErrorText>}
             </Field.Root>
 
             <Field.Root mt={4}>
@@ -82,10 +124,10 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
                   { value: "MEDIUM", label: "보통" },
                   { value: "HARD", label: "어려움" }
                 ]}
-                value={difficulty}
-                onChange={setDifficulty}
+                value={watch("difficulty")}
+                onChange={(value) => setValue("difficulty", value as "EASY" | "NORMAL" | "HARD")}
               />
-              <Field.ErrorText />
+              {errors.difficulty && <Field.ErrorText>{errors.difficulty.message}</Field.ErrorText>}
             </Field.Root>
 
             <Field.Root mt={4}>
@@ -94,10 +136,10 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
                 options={[
                   { value: "SCIENCE", label: "과학" }
                 ]}
-                value={mainCategory}
-                onChange={setMainCategory}
+                value={watch("mainCategory")}
+                onChange={(value) => setValue("mainCategory", value)}
               />
-              <Field.ErrorText />
+              {errors.mainCategory && <Field.ErrorText>{errors.mainCategory.message}</Field.ErrorText>}
             </Field.Root>
 
             <Field.Root mt={4}>
@@ -106,17 +148,17 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
                 options={[
                   { value: "PHYSICS", label: "물리" }
                 ]}
-                value={subCategory}
-                onChange={setSubCategory}
+                value={watch("subCategory")}
+                onChange={(value) => setValue("subCategory", value)}
               />
-              <Field.ErrorText />
+              {errors.subCategory && <Field.ErrorText>{errors.subCategory.message}</Field.ErrorText>}
             </Field.Root>
 
             <Field.Root mt={4}>
               <Field.Label>비공개 방</Field.Label>
               <Switch
                 checked={isPrivate}
-                onChange={setIsPrivate}
+                onChange={(checked) => setValue("isPrivate", checked)}
                 label="비공개 방으로 설정"
               />
             </Field.Root>
@@ -126,10 +168,16 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
                 <Field.Label>비밀번호</Field.Label>
                 <Input
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호를 입력하세요"
+                  {...register("password", {
+                    required: isPrivate ? "비밀번호를 입력해주세요." : false,
+                    minLength: { value: 4, message: "비밀번호는 4자리여야 합니다." },
+                    maxLength: { value: 4, message: "비밀번호는 4자리여야 합니다." }
+                  })}
+                  placeholder="4자리 비밀번호를 입력하세요"
+                  maxLength={4}
+                  minLength={4}
                 />
+                {errors.password && <Field.ErrorText>{errors.password.message}</Field.ErrorText>}
               </Field.Root>
             )}
           </Dialog.Body>
@@ -137,7 +185,7 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
             <Button variant="outline" mr={3} onClick={onClose} className={styles.cancelButton}>
               취소
             </Button>
-            <Button className={styles.createButton} onClick={handleCreateRoom}>
+            <Button className={styles.createButton} onClick={handleSubmit(onSubmit)}>
               방 만들기
             </Button>
           </Dialog.Footer>

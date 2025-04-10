@@ -36,6 +36,7 @@ export class APIClient {
 
   static post = async <RequestBody, ResponseBody>(url: string, data?: RequestBody, headers?: (RawAxiosRequestHeaders | AxiosHeaders)) => {
     const config = this.generateAxiosConfig(headers);
+    console.log("Request Body:", data);
     const responseBody = await axiosClient.post<ResponseBody>(url, data, config) as ResponseBody;
 
     return responseBody;

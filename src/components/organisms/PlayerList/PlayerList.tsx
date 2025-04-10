@@ -38,11 +38,11 @@ const PlayerList: React.FC<PlayerListProps> = ({title, type, players, maxPlayers
         const titleComponents = [];
 
         if (title) {
-            titleComponents.push(<h2 style={titleStyle}>{title}</h2>);
+            titleComponents.push(<h2 key="player-list-title" style={titleStyle}>{title}</h2>);
         }
 
         if (maxPlayers) {
-            titleComponents.push(<h3 style={titleStyle}>{`${players.length} / ${maxPlayers}`}</h3>);
+            titleComponents.push(<h3 key="player-list-count" style={titleStyle}>{`${players.length} / ${maxPlayers}`}</h3>);
         }
 
         if (titleComponents.length === 0) {
@@ -81,7 +81,8 @@ const PlayerList: React.FC<PlayerListProps> = ({title, type, players, maxPlayers
             <div style={getItemStyle(type)}>
                 {players.map((player, index) => (
                     <PlayerItem
-                        key={player.id}
+                        key={`player-${player.id}-${player.name}`}
+                        userId={player.id}
                         name={player.name}
                         avatar={player.avatar}
                         isReady={player.isReady}

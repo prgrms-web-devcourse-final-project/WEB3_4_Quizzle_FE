@@ -1,9 +1,12 @@
 import type React from "react"
 import Avatar from "../../atoms/Avatar/Avatar"
+import { useQuery } from "@tanstack/react-query"
+import { getUser } from "../../../services/remote/user"
 // Remove SCSS import
 // import './FriendItem.scss';
 
 export interface PlayerItemProps {
+    userId: string
     name: string
     avatar?: string
     isReady?: boolean
@@ -11,7 +14,14 @@ export interface PlayerItemProps {
     rank?: number
 }
 
-const PlayerItem: React.FC<PlayerItemProps> = ({name, avatar, isReady = false, score, rank}) => {
+const PlayerItem: React.FC<PlayerItemProps> = ({userId, name, avatar, isReady = false, score, rank}) => {
+
+    const {data: user} = useQuery({
+        queryKey: ["user", userId],
+        queryFn: () => getUser(userId)
+    })
+
+    console.log("user :", user)
     const playerItemStyle = {
         display: "flex",
         flexDirection: "row" as const,

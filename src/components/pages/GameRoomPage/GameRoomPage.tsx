@@ -1,43 +1,27 @@
 import type React from "react"
-import {useState} from "react"
+import {useContext, useState} from "react"
 import AppTemplate from "../../templates/AppTemplate/AppTemplate.tsx";
 import Button, {ButtonVariant} from "../../atoms/Button/Button.tsx";
 import PlayerList from "../../organisms/PlayerList/PlayerList.tsx";
 import GameRoomHeader from "../../organisms/Headers/QuizHeader/GameRoomHeader.tsx";
 import "./GameRoomPage.scss"
+import { getRoom, leaveRoom } from "../../../services/remote/room.ts";
+import { RouteDispatchContext } from "../../provider/RouteProvider.tsx";
+import { useQuery } from "@tanstack/react-query";
 
-const GameRoomPage: React.FC = () => {
+const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
     const [isReady, setIsReady] = useState(false);
-    const [isHost] = useState(false);
+    const isHost = true;
+    const dispatchRouter = useContext(RouteDispatchContext)
 
-    // Mock data
-    const roomId = "12345"
-    const players = [
-        {
-            id: "1",
-            name: "Player 1",
-            avatar: "/assets/avatars/avatar1.png",
-            isReady: true,
-        },
-        {
-            id: "2",
-            name: "Player 2",
-            avatar: "/assets/avatars/avatar2.png",
-            isReady: true,
-        },
-        {
-            id: "3",
-            name: "Player 3",
-            avatar: "/assets/avatars/avatar3.png",
-            isReady: false,
-        },
-        {
-            id: "4",
-            name: "Player 4",
-            avatar: "/assets/avatars/avatar4.png",
-            isReady: true,
-        },
-    ]
+    const {data: room} = useQuery({
+        queryKey: ["room", roomId],
+        queryFn: () => getRoom(roomId)
+    })
+
+    if (!room) {
+        return <div>로딩중...</div>
+    }
 
     const handleReady = () => {
         setIsReady(!isReady)
@@ -47,8 +31,12 @@ const GameRoomPage: React.FC = () => {
         console.log("Game started")
     }
 
-    const handleLeave = () => {
+    console.log("roomId :", roomId)
+    const handleLeave = async () => {
+        console.log("roomId :", roomId)
+        await leaveRoom(roomId)
         console.log("Left room")
+        dispatchRouter("LOBBY")
     }
 
     const renderButton = (isHost?: boolean, isReady?: boolean) => {
@@ -73,29 +61,29 @@ const GameRoomPage: React.FC = () => {
     }
 
     return (
-        <AppTemplate header={<GameRoomHeader roomId={roomId} onStart={handleStart} onLeave={handleLeave}/>}
+        <AppTemplate header={<GameRoomHeader roomId={String(room.id)} onStart={handleStart} onLeave={handleLeave}/>}
                      content={<div className="game-room-template__content">
                          <div className="game-room-template__players">
-                             <PlayerList title="플레이어" type="grid" players={players} maxPlayers={8}/>
+                             <PlayerList title="플레이어" type="grid" players={room.players} maxPlayers={room.capacity}/>
                          </div>
                          <div className="game-room-template__settings">
                              <div className="game-room-template__settings-card">
                                  <h3>게임 설정</h3>
                                  <div className="game-room-template__setting-item">
                                      <span>주제</span>
-                                     <span>상식 퀴즈</span>
+                                     <span>{room.mainCategory} - {room.subCategory}</span>
                                  </div>
                                  <div className="game-room-template__setting-item">
-                                     <span>질문 수</span>
-                                     <span>10 개</span>
+                                     <span>최대 인원</span>
+                                     <span>{room.capacity} 명</span>
                                  </div>
                                  <div className="game-room-template__setting-item">
-                                     <span>제한 시간</span>
-                                     <span>15 초</span>
+                                     <span>현재 인원</span>
+                                     <span>{room.currentPlayers} 명</span>
                                  </div>
                                  <div className="game-room-template__setting-item">
                                      <span>난이도</span>
-                                     <span>어려움</span>
+                                     <span>{room.difficulty}</span>
                                  </div>
                              </div>
                              {renderButton(isHost, isReady)}

@@ -6,10 +6,9 @@ import { Room } from "../../../types/response.ts"
 
 export interface IRoomListProps {
     roomList: Room[]
-    onQuizStart?: (quizId: string) => void
 }
 
-const RoomList: React.FC<IRoomListProps> = ({roomList, onQuizStart}: IRoomListProps) => {
+const RoomList: React.FC<IRoomListProps> = ({roomList}: IRoomListProps) => {
     const titleStyle = {
         padding: "1rem",
         textAlign: "left" as const,
@@ -27,10 +26,11 @@ const RoomList: React.FC<IRoomListProps> = ({roomList, onQuizStart}: IRoomListPr
                 {roomList.map((room) => (
                     <RoomItem
                         key={room.id}
+                        roomId={room.id.toString()}
                         title={room.title}
                         maxMember={room.capacity}
                         member={room.currentPlayers}
-                        onStart={() => onQuizStart && onQuizStart(room.id.toString())}
+                        isPrivate={room.isPrivate}
                     />
                 ))}
             </div>
