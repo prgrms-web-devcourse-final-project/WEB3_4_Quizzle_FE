@@ -8,9 +8,10 @@ export interface AvatarProps {
   size?: "sm" | "md" | "lg"
   className?: string
   style?: React.CSSProperties
+  onClick?: () => void
 }
 
-const Avatar: React.FC<AvatarProps> = ({ src, alt = "User avatar", size = "md", className = "", style }) => {
+const Avatar: React.FC<AvatarProps> = ({ src, alt = "User avatar", size = "md", className = "", style, onClick }) => {
   // Size dimensions
   const sizes = {
     sm: 32,
@@ -45,7 +46,7 @@ const Avatar: React.FC<AvatarProps> = ({ src, alt = "User avatar", size = "md", 
   }
 
   return (
-    <div className={`avatar ${className}`} style={avatarStyle}>
+    <div className={`avatar ${className}`} style={avatarStyle} onClick={onClick}>
       {src ? (
         <img src={src || "/placeholder.svg"} alt={alt} style={imageStyle} />
       ) : (

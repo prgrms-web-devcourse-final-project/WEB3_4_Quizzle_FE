@@ -4,6 +4,7 @@ import {AxiosHeaders, RawAxiosRequestHeaders} from "axios";
 import {BaseResponse, TokenInfoData} from "../types/response.ts";
 
 interface QueryParams {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -47,6 +48,13 @@ export class APIClient {
 
     const config = this.generateAxiosConfig(headers);
     const responseBody = axiosClient.delete(url, config) as ResponseBody;
+
+    return responseBody;
+  };
+
+  static patch = async <RequestBody, ResponseBody>(url: string, data?: RequestBody, headers?: (RawAxiosRequestHeaders | AxiosHeaders)) => {
+    const config = this.generateAxiosConfig(headers);
+    const responseBody = await axiosClient.patch<ResponseBody>(url, data, config) as ResponseBody;
 
     return responseBody;
   };

@@ -13,7 +13,7 @@ export interface PlayerItemProps {
     acceptedAt?: string
 }
 
-const FriendItem: React.FC<PlayerItemProps> = ({name, avatar, level, isOnline, acceptedAt, score}: PlayerItemProps) => {
+const FriendItem: React.FC<PlayerItemProps> = ({name, avatar, isOnline, score}: PlayerItemProps) => {
     const renderOnlineText = (isOnline: boolean) => {
         if (isOnline) {
             return "온라인";

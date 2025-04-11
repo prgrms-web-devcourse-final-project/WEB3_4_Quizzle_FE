@@ -5,18 +5,14 @@ import LobbyHeader from "../../organisms/Headers/LobbyHeader/LobbyHeader.tsx";
 import RoomList from "../../organisms/RoomList/RoomList.tsx";
 import FriendList from "../../organisms/FriendList/FriendList.tsx";
 import "./LobbyPage.scss"
-import { getRoomList, joinRoom } from "../../../services/remote/room.ts";
-import { getFriendList } from "../../../services/remote/user.ts";
+import { getRoomList } from "../../../services/remote/room.ts";
 import { mockRoomList } from "../../../mock/roomList.ts";
 import { mockFriendList } from "../../../mock/user.ts";
-import { RouteDispatchContext } from "../../provider/RouteProvider.tsx";
-import { useContext } from "react";
-import { Room } from "../../../types/response.ts";
-import { useDialog, useDisclosure } from "@chakra-ui/react";
-import PasswordInputModal from "../../modal/PasswordInputModal.tsx";
-const LobbyPage: React.FC = () => {
+import { getFriendList, getFriendRequestList } from "../../../services/remote/friend.ts";
+import FriendRequestList from "../../organisms/FirendRequestList.tsx";
+import { Stack } from "@chakra-ui/react";
 
-    const routerDispatch = useContext(RouteDispatchContext)
+const LobbyPage: React.FC = () => {
 
     const { data: roomListResponse, isLoading: isRoomListLoading } = useQuery({
         queryKey: ["roomList"],
@@ -32,7 +28,18 @@ const LobbyPage: React.FC = () => {
         staleTime: 0,
     })
 
-    if (isRoomListLoading || isFriendListLoading) {
+    const { data: firendRequestedList, isLoading: isFriendRequestListLoading } = useQuery({
+        queryKey: ["friendRequestList"],
+        queryFn: getFriendRequestList,
+        refetchOnMount: true,
+        staleTime: 0,
+    })
+    console.log("[LobbyPage] roomListResponse : ", roomListResponse)
+    console.log("[LobbyPage] friendListResponse : ", friendListResponse)
+    console.log("[LobbyPage] firendRequestedList : ", firendRequestedList)
+
+
+    if (isRoomListLoading || isFriendListLoading || isFriendRequestListLoading) {
         return <div>Loading...</div>
     }
 
@@ -42,9 +49,10 @@ const LobbyPage: React.FC = () => {
                 <div className="lobby-roomlist-container">
                     <RoomList roomList={roomListResponse ?? mockRoomList} />
                 </div>
-                <div className="lobby-friendlist-container">
+                <Stack w={"300px"}>
+                    {firendRequestedList.length > 0 && <FriendRequestList friendRequests={firendRequestedList}/>}
                     <FriendList players={friendListResponse ?? mockFriendList}/>
-                </div>
+                </Stack>
             </div>
         }/>
     )

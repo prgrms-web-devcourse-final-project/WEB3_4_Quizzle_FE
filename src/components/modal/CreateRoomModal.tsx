@@ -15,6 +15,7 @@ type FormValues = {
   subCategory: string;
   isPrivate: boolean;
   password: string;
+  problemCount: number;
 };
 
 export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
@@ -26,7 +27,8 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
       mainCategory: "SCIENCE",
       subCategory: "PHYSICS",
       isPrivate: false,
-      password: ""
+      password: "",
+      problemCount: 10
     }
   });
 
@@ -57,7 +59,8 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
       difficulty: data.difficulty,
       mainCategory: data.mainCategory,
       subCategory: data.subCategory,
-      isPrivate: data.isPrivate
+      isPrivate: data.isPrivate,
+      problemCount: data.problemCount
     });
 
     if (response.status < 200 || response.status >= 300) {
@@ -152,6 +155,16 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
                 onChange={(value) => setValue("subCategory", value)}
               />
               {errors.subCategory && <Field.ErrorText>{errors.subCategory.message}</Field.ErrorText>}
+            </Field.Root>
+
+            <Field.Root>
+              <Field.Label>퀴즈 갯수</Field.Label>
+              <Input 
+                {...register("problemCount", { required: "방 이름을 입력해주세요." })}
+                type="number"
+                placeholder="퀴즈 갯수를 입력하세요"
+              />
+              {errors.problemCount && <Field.ErrorText>{errors.problemCount.message}</Field.ErrorText>}
             </Field.Root>
 
             <Field.Root mt={4}>

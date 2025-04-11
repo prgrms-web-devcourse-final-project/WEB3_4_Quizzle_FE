@@ -38,3 +38,29 @@ export type Player = {
 }
 
 export type PlayerListResponse = Player[];
+
+
+export type UserProfile = {
+  id: number;
+  nickname: string;
+  avatarUrl: string;
+  level: number;
+  exp: number;
+  point: number;
+}
+
+export type FriendRequest = {
+  memberId: number;
+  nickname: string;
+  requestedAt: string;
+}
+
+export type Avatar = {
+  id: number;
+  fileName: string;
+  price: number;
+  status: "AVAILABLE" | "OWNED";
+  url: string;
+}
+
+export type AvailableAvatarList = Avatar[];

@@ -2,26 +2,24 @@ import type React from "react"
 import Avatar from "../../atoms/Avatar/Avatar"
 import { useQuery } from "@tanstack/react-query"
 import { getUser } from "../../../services/remote/user"
-// Remove SCSS import
-// import './FriendItem.scss';
+import { useState } from "react"
+import { Button } from "@chakra-ui/react"
+import useUser from "../../../hooks/user"
+import { sendFriendRequest } from "../../../services/remote/friend"
 
 export interface PlayerItemProps {
-    userId: string
-    name: string
-    avatar?: string
-    isReady?: boolean
-    score?: number
-    rank?: number
+    playerId: number
+    isOwner: boolean
+    isReady: boolean
 }
 
-const PlayerItem: React.FC<PlayerItemProps> = ({userId, name, avatar, isReady = false, score, rank}) => {
+const PlayerItem: React.FC<PlayerItemProps> = ({playerId, isOwner, isReady}) => {
 
-    const {data: user} = useQuery({
-        queryKey: ["user", userId],
-        queryFn: () => getUser(userId)
+    const {data: user, isLoading} = useQuery({
+        queryKey: ["user", playerId],
+        queryFn: () => getUser(playerId)
     })
-
-    console.log("user :", user)
+    
     const playerItemStyle = {
         display: "flex",
         flexDirection: "row" as const,
@@ -33,39 +31,82 @@ const PlayerItem: React.FC<PlayerItemProps> = ({userId, name, avatar, isReady = 
         borderRadius: "0.5rem",
         backgroundColor: "#ffffff",
     }
-
-    const rankStyle = {
-        fontWeight: "bold" as const,
-        minWidth: "24px",
-    }
-
+    
     const infoStyle = {
         flex: 1,
     }
-
+    
     const nameStyle = {
         fontWeight: 500,
     }
-
+    
     const statusStyle = {
         fontSize: "0.875rem",
-        color: isReady ? "green" : "#adb5bd",
+        color: isReady ? "green" : "#adb5bd", // TODO: 준비 상태에 따라 색상 변경
     }
-
+    
     const scoreStyle = {
         fontWeight: "bold" as const,
         color: "#5e3bee",
     }
+    
+    const [showTooltip, setShowTooltip] = useState(false);
+    
+    const tooltipStyle: React.CSSProperties = {
+        position: "absolute",
+        backgroundColor: "white", 
+        padding: "8px",
+        width: "150px",
+        borderRadius: "4px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        border: "1px solid #dee2e6",
+        zIndex: 1000,
+        cursor: "pointer"
+    }
 
+    const {user: me, isLoading: isMeLoading} = useUser();
+
+    
+    const handleAvatarClick = () => {
+        if (me.id === playerId) {
+            return;
+        }
+        setShowTooltip(!showTooltip);
+    }
+    
+    const handleCloseTooltip = () => {
+        setShowTooltip(false);
+    }
+    const handleAddFriend = () => {
+        sendFriendRequest(playerId)
+        setShowTooltip(false);
+    }
+
+    if (isLoading || isMeLoading) {
+        return <div>Loading...</div>
+    }
     return (
         <div style={playerItemStyle}>
-            {rank && <div style={rankStyle}>{rank}</div>}
-            <Avatar src={avatar} alt={name} size="md"/>
-            <div style={infoStyle}>
-                <div style={nameStyle}>{name}</div>
-                {isReady !== undefined && <div style={statusStyle}>{isReady ? "Ready" : "Not Ready"}</div>}
+            <div style={{ position: "relative" }}>
+                <Avatar 
+                    src={user.avatarUrl} 
+                    alt={user.nickname} 
+                    size="md" 
+                    style={isOwner ? { border: "2px solid #5e3bee" } : undefined}
+                    onClick={handleAvatarClick}
+                />
+                {showTooltip && (
+                    <div style={tooltipStyle}>
+                        <Button bgColor={"quizzle.primary"} color={"white"} w={"full"} onClick={handleAddFriend}>친구 추가하기</Button>
+                        <Button bgColor={"quizzle.gray.200"} color={"white"} w={"full"} mt={2} onClick={handleCloseTooltip}>닫기</Button>
+                    </div>
+                )}
             </div>
-            {score !== undefined && <div style={scoreStyle}>{score}</div>}
+            <div style={infoStyle}>
+                <div style={nameStyle}>{user.nickname}</div>
+                {user.isReady !== undefined && <div style={statusStyle}>{user.isReady ? "Ready" : "Not Ready"}</div>}
+            </div>
+            {user.score !== undefined && <div style={scoreStyle}>{user.score}</div>}
         </div>
     )
 }

@@ -4,6 +4,7 @@ import LobbyPage from "../pages/LobbyPage/LobbyPage.tsx";
 import GameRoomPage from "../pages/GameRoomPage/GameRoomPage.tsx";
 import QuizPage from "../pages/QuizPage/QuizPage.tsx";
 import ResultsPage from "../pages/ResultsPage/ResultsPage.tsx";
+import ProfileSettingPage from '../pages/ProfileSettingPage/ProfileSettingPage.tsx';
 
 type RouteParams = {
   roomId?: string;
@@ -12,7 +13,7 @@ type RouteParams = {
 }
 
 type Route = {
-  name: "LOGIN" | "LOBBY" | "GAME_ROOM" | "QUIZ" | "RESULT";
+  name: "LOGIN" | "LOBBY" | "GAME_ROOM" | "QUIZ" | "RESULT" | "PROFILE_SETTING";
   params?: RouteParams;
 }
 
@@ -32,16 +33,23 @@ const renderPageWith = (route: Route) => {
     case "LOBBY":
       return <LobbyPage/>
     case "GAME_ROOM":
-      return <GameRoomPage roomId={route.params?.roomId}/>
+      return <GameRoomPage roomId={route.params?.roomId ?? ""}/>
     case "QUIZ":
       return <QuizPage/>
+    case "PROFILE_SETTING":
+      return <ProfileSettingPage/>
     case "RESULT":
       return <ResultsPage/>
   }
 }
 
 const RouteContextProvider = () => {
-  const [routeState, setRouteState] = useState<Route>(DEFAULT_ROUTE);
+  const searchParams = new URLSearchParams(window.location.search);
+  const isRegister = searchParams.get("status") === "REGISTER";
+  const [routeState, setRouteState] = useState<Route>(isRegister ? {
+    name: "PROFILE_SETTING",
+    params: {}
+  } : DEFAULT_ROUTE);
 
   const changeHRVServiceZone = (routeToChange: Route['name'], params?: RouteParams) => {
     setRouteState({

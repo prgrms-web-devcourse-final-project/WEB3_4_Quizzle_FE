@@ -2,7 +2,9 @@ import { QuizzleAPI } from "../api";
 
 export async function getRoomList() {
   try {
+     
     const response = await QuizzleAPI.get("/api/v1/rooms");
+    // @ts-expect-error response type from QuizzleAPI is not properly typed
     return response.data;
   } catch (error) {
     console.error(error);
@@ -12,7 +14,9 @@ export async function getRoomList() {
 
 export async function getRoom(roomId: string) {
   try {
+     
     const response = await QuizzleAPI.get(`/api/v1/rooms/${roomId}`);
+    // @ts-expect-error response type from QuizzleAPI is not properly typed
     return response.data;
   } catch (error) {
     console.error(error);
@@ -26,7 +30,7 @@ export async function createRoom({
   mainCategory = "SCIENCE",
   subCategory = "PHYSICS",
   answerType = "MULTIPLE_CHOICE",
-  problemCount = 5,
+  problemCount = 10,
   password,
   isPrivate = false
 }: {
@@ -41,6 +45,7 @@ export async function createRoom({
   isPrivate?: boolean;
 }) {
   try {
+     
     const response = await QuizzleAPI.post("/api/v1/rooms", {
       title,
       capacity,
@@ -52,6 +57,7 @@ export async function createRoom({
       password,
       isPrivate
     });
+    // @ts-expect-error response type from QuizzleAPI is not properly typed
     return response.data;
   } catch (error) {
     console.error(error);
@@ -61,7 +67,9 @@ export async function createRoom({
 
 export async function startGame(roomId: string) {
   try {
+     
     const response = await QuizzleAPI.post(`/api/v1/rooms/${roomId}/start`);
+    // @ts-expect-error response type from QuizzleAPI is not properly typed
     return response.data;
   } catch (error) {
     console.error(error);
@@ -71,7 +79,9 @@ export async function startGame(roomId: string) {
 
 export async function readyGame(roomId: string) {
   try {
+     
     const response = await QuizzleAPI.post(`/api/v1/rooms/${roomId}/ready`);
+    // @ts-expect-error response type from QuizzleAPI is not properly typed
     return response.data;
   } catch (error) {
     console.error(error);
@@ -81,8 +91,10 @@ export async function readyGame(roomId: string) {
 
 export async function leaveRoom(roomId: string) {
   try {
+     
     const response = await QuizzleAPI.post(`/api/v1/rooms/${roomId}/leave`);
     console.log("response :", response)
+    // @ts-expect-error response type from QuizzleAPI is not properly typed
     return response.data;
   } catch (error) {
     console.error(error);
@@ -92,6 +104,7 @@ export async function leaveRoom(roomId: string) {
 
 export async function joinRoom(roomId: string, password?: string) {
   try {
+     
     const response = await QuizzleAPI.post(`/api/v1/rooms/${roomId}/join`, {
       password
     });

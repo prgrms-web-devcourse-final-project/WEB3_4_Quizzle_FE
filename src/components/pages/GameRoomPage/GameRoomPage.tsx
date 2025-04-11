@@ -31,11 +31,8 @@ const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
         console.log("Game started")
     }
 
-    console.log("roomId :", roomId)
     const handleLeave = async () => {
-        console.log("roomId :", roomId)
         await leaveRoom(roomId)
-        console.log("Left room")
         dispatchRouter("LOBBY")
     }
 
@@ -64,7 +61,7 @@ const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
         <AppTemplate header={<GameRoomHeader roomId={String(room.id)} onStart={handleStart} onLeave={handleLeave}/>}
                      content={<div className="game-room-template__content">
                          <div className="game-room-template__players">
-                             <PlayerList title="플레이어" type="grid" players={room.players} maxPlayers={room.capacity}/>
+                             <PlayerList title="플레이어" type="grid" playerIds={room.players} readyPlayers={room.readyPlayers} maxPlayers={room.capacity} ownerId={room.ownerId}/>
                          </div>
                          <div className="game-room-template__settings">
                              <div className="game-room-template__settings-card">

@@ -15,11 +15,13 @@ export interface Player {
 export interface PlayerListProps {
     title?: string;
     type?: "grid" | "list";
-    players: Player[];
+    playerIds: number[];
+    readyPlayers: number[];
     maxPlayers?: number;
+    ownerId?: number;
 }
 
-const PlayerList: React.FC<PlayerListProps> = ({title, type, players, maxPlayers}) => {
+const PlayerList: React.FC<PlayerListProps> = ({title, type, playerIds, readyPlayers, maxPlayers, ownerId}) => {
     const titleContainerStyle = {
         display: "flex",
         flexDirection: "row" as const,
@@ -42,7 +44,7 @@ const PlayerList: React.FC<PlayerListProps> = ({title, type, players, maxPlayers
         }
 
         if (maxPlayers) {
-            titleComponents.push(<h3 key="player-list-count" style={titleStyle}>{`${players.length} / ${maxPlayers}`}</h3>);
+            titleComponents.push(<h3 key="player-list-count" style={titleStyle}>{`${playerIds.length} / ${maxPlayers}`}</h3>);
         }
 
         if (titleComponents.length === 0) {
@@ -75,19 +77,19 @@ const PlayerList: React.FC<PlayerListProps> = ({title, type, players, maxPlayers
         }
     }
 
+    console.log("ownerId : ", ownerId)
+
+
     return (
         <Card className="player-list-container">
             {renderTitle()}
             <div style={getItemStyle(type)}>
-                {players.map((player, index) => (
+                {playerIds.map((playerId) => (
                     <PlayerItem
-                        key={`player-${player.id}-${player.name}`}
-                        userId={player.id}
-                        name={player.name}
-                        avatar={player.avatar}
-                        isReady={player.isReady}
-                        score={player.score}
-                        rank={index + 1}
+                        key={`player-${playerId}`}
+                        playerId={playerId}
+                        isOwner={playerId === ownerId}
+                        isReady={readyPlayers.includes(playerId)}
                     />
                 ))}
             </div>

@@ -12,13 +12,9 @@ const config = {
     },
     useSystemColorMode: false,
     colors: {
-        fika: {
+        quizzle: {
             black: { value: "#000" },
             white: { value: "#FFFFFF" },
-            sky: {
-                300: { value: "#30E3F7" },
-                400: { value: "#28A9B8" },
-            },
             add: {
                 200: { value: "#EEEEEE" },
                 250: { value: "#CACACA" },
@@ -42,15 +38,6 @@ const config = {
                 100: { value: "#FFE4D8" },
                 300: { value: "#FF4D00" },
             },
-            pink: {
-                50: { value: "#FFFCFE" },
-                100: { value: "#FFF5FC" },
-                200: { value: "#FFDAEC" },
-                300: { value: "#FF82BE" },
-                400: { value: "#FC3394" },
-                500: { value: "#FF176A" },
-                600: { value: "#D23882" },
-            },
             blue: {
                 50: { value: "#EDF2F7" },
                 100: { value: "#B9DCFF" },
@@ -65,13 +52,7 @@ const config = {
             yellow: {
                 300: { value: "#FFCD00" },
             },
-            purple: {
-                200: { value: "#E3D3FF" },
-                400: { value: "#3A0099" },
-            },
-            line: {
-                200: { value: "#E0E0E0" },
-            },
+            primary: { value: "#5e3bee" },
         },
     },
     fonts: {

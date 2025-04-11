@@ -3,6 +3,10 @@ import Button from "../../../atoms/Button/Button.tsx"
 import Avatar from "../../../atoms/Avatar/Avatar.tsx"
 import { useDisclosure } from "@chakra-ui/react";
 import CreateRoomModal from "../../../modal/CreateRoomModal.tsx";
+import useUser from "../../../../hooks/user.ts";
+import { RouteDispatchContext } from "../../../provider/RouteProvider.tsx";
+import { useContext } from "react";
+import { logout } from "../../../../services/remote/user.ts";
 
 const LobbyHeader: React.FC = () => {
 
@@ -43,7 +47,7 @@ const LobbyHeader: React.FC = () => {
     display: "flex",
     justifyContent: "flex-end",
     alignItems: "center",
-    gap: "0.75rem",
+    gap: "0.25rem",
   }
 
   const {
@@ -52,6 +56,18 @@ const LobbyHeader: React.FC = () => {
     onOpen: onOpenCreateRoomModal,
   } = useDisclosure();
 
+  const { user: me, isLoading: isMeLoading, refetch: refetchMe } = useUser();
+
+  const routerDispatch = useContext(RouteDispatchContext);
+
+  const handleLogout = () => {
+    logout();
+    window.location.reload();
+  }
+
+  if (isMeLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <header style={headerStyle}>
@@ -70,7 +86,11 @@ const LobbyHeader: React.FC = () => {
 
         <div style={actionsStyle}>
           <Button onClick={onOpenCreateRoomModal} variant="primary">방 만들기</Button>
-          <Avatar src="/assets/avatars/avatar1.png" alt="User" />
+          <Button variant="text" color={"black"} onClick={handleLogout}>Log out</Button>
+          <Avatar onClick={() => {
+            refetchMe();
+            routerDispatch("PROFILE_SETTING");
+          }} src={me?.avatarUrl} alt="User" />
         </div>
       </div>
       <CreateRoomModal isOpen={isCreateRoomModalOpen} onClose={onCloseCreateRoomModal} />
