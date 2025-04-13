@@ -1,5 +1,5 @@
 import type React from "react"
-import {useContext, useEffect, useMemo, useState, useCallback} from "react"
+import {useContext, useCallback} from "react"
 import AppTemplate from "../../templates/AppTemplate/AppTemplate.tsx";
 import PlayerList from "../../organisms/PlayerList/PlayerList.tsx";
 import GameRoomHeader from "../../organisms/Headers/QuizHeader/GameRoomHeader.tsx";
@@ -9,14 +9,11 @@ import { RouteDispatchContext } from "../../provider/RouteProvider.tsx";
 import { useQuery } from "@tanstack/react-query";
 import useUser from "../../../hooks/user.ts";
 import { Button } from "@chakra-ui/react";
-import { WebSocketClient } from "../../../services/socket/socket.ts";
-import { ChatMessageDTO } from "../../../services/socket/types.ts";
+import { ChatMessageDTO, RoomMessageDTO } from "../../../services/socket/types.ts";
+import useWebSocket from "../../../hooks/webSocket.ts";
 
 const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
-    const webSocket = useMemo(() => new WebSocketClient(), []);
-    const [isConnected, setIsConnected] = useState(false);
     const dispatchRouter = useContext(RouteDispatchContext)
-    
     const {user: me, isLoading: isMeLoading} = useUser();
     
     const {data: room, refetch: refetchRoom} = useQuery({
@@ -24,47 +21,42 @@ const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
         queryFn: () => getRoom(roomId)
     })
     
-    const handleReceiveMessage = useCallback((message: ChatMessageDTO) => {
-        if (!me || !isConnected) {
-            return;
-        }
+    const handleReceiveRoomChat = useCallback((message: ChatMessageDTO) => {
+        if (!me) return;
+        console.log("[GameRoomPage]receive room chat : ", message)
         refetchRoom();
-        console.log("message : ", message)
-    }, [isConnected, me, refetchRoom]);
+    }, [me, refetchRoom]);
 
-    useEffect(() => {
-        webSocket.connect(() => {
-            setIsConnected(true);
-            console.log("[LobbyChat] connected");
-            webSocket.subscribeLobbyChat((message) => {
-                handleReceiveMessage(message);
-            });
-        });
-    
-        return () => {
-            setIsConnected(false);
-            webSocket.disconnect();
-        };
-    }, [handleReceiveMessage, webSocket]);
+    const handleReceiveRoomUpdates = useCallback((message: RoomMessageDTO) => {
+        if (!me) return;
+        console.log("[GameRoomPage]receive room updates : ", message)
+        refetchRoom();
+    }, [me, refetchRoom]);
+
+    const { isConnected, startGame: wsStartGame } = useWebSocket({
+        roomId,
+        onRoomChat: handleReceiveRoomChat,
+        onRoomUpdate: handleReceiveRoomUpdates,
+        enabled: !!me
+    });
+
+    const handleStart = useCallback(async() => {
+        if (!me || !isConnected) return;
+        await startGame(roomId);
+        wsStartGame(roomId);
+        dispatchRouter("QUIZ", {roomId})
+    }, [dispatchRouter, isConnected, me, roomId, wsStartGame]);
 
     if (!room || isMeLoading) {
         return <div>로딩중...</div>
     }
 
     const isMeReady = room?.readyPlayers.includes(me?.id ?? 0);
-
     const isHost = room.ownerId === me?.id;
-
-    console.log("isMeReady : ", isMeReady)
 
     const handleReady = async () => {
         await readyGame(roomId);
         refetchRoom();
-    }
-
-    const handleStart = async () => {
-        await startGame(roomId);
-        dispatchRouter("QUIZ")
     }
 
     const handleLeave = async () => {
@@ -99,7 +91,7 @@ const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
                                  </div>
                              </div>
                              {!isHost && <Button bgColor="quizzle.primary" color="white" w="full" h="200px" fontSize="3xl" rounded={"20px"} onClick={handleReady}>{isMeReady ? "준비취소" : "준비하기"}</Button>}
-                             {isHost && <Button bgColor="quizzle.primary" color="white" w="full" h="200px" fontSize="3xl" rounded={"20px"} onClick={handleStart} disabled={room.readyPlayers.length !== room.players.length}>게임 시작</Button>}
+                             {isHost && <Button bgColor="quizzle.primary" color="white" w="full" h="200px" fontSize="3xl" rounded={"20px"} onClick={handleStart} disabled={room.readyPlayers.length !== room.players.length - 1 || room.players.length < 2}>게임 시작</Button>}
                          </div>
                      </div>}/>
     )

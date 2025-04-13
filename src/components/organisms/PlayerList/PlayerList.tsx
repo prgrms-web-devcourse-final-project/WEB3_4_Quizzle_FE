@@ -16,12 +16,12 @@ export interface PlayerListProps {
     title?: string;
     type?: "grid" | "list";
     playerIds: number[];
-    readyPlayers: number[];
+    readyPlayers?: number[];
     maxPlayers?: number;
     ownerId?: number;
 }
 
-const PlayerList: React.FC<PlayerListProps> = ({title, type, playerIds, readyPlayers, maxPlayers, ownerId}) => {
+const PlayerList: React.FC<PlayerListProps> = ({title, type = "list", playerIds, readyPlayers = [], maxPlayers, ownerId}) => {
     const titleContainerStyle = {
         display: "flex",
         flexDirection: "row" as const,

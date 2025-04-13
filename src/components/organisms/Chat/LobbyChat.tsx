@@ -1,5 +1,4 @@
-import { useMemo, useEffect, useState, useRef } from "react";
-import { WebSocketClient } from "../../../services/socket/socket";
+import { useState, useRef, useCallback } from "react";
 import {
     Box,
     Container,
@@ -16,6 +15,7 @@ import Avatar from "../../atoms/Avatar/Avatar";
 import useUser from "../../../hooks/user";
 import { getUser } from "../../../services/remote/user";
 import { useQuery } from "@tanstack/react-query";
+import useWebSocket from "../../../hooks/webSocket";
 
 function ChatMessage({ message }: { message: ChatMessageDTO }) {
     const { user: me, isLoading: isMeLoading } = useUser();
@@ -24,7 +24,6 @@ function ChatMessage({ message }: { message: ChatMessageDTO }) {
         queryKey: ["user", message.senderId],
         queryFn: () => getUser(Number(message.senderId)),
     })
-
 
     const isMine = Number(message.senderId) === Number(me?.id);
     
@@ -57,9 +56,25 @@ function ChatMessage({ message }: { message: ChatMessageDTO }) {
 export default function LobbyChat() {
     const [messages, setMessages] = useState<ChatMessageDTO[]>([]);
     const [messageInput, setMessageInput] = useState<string>("");
-    const [isConnected, setIsConnected] = useState(false);
     const messageListRef = useRef<HTMLDivElement>(null);
     const { user: me } = useUser();
+    
+    const handleReceiveMessage = useCallback((message: ChatMessageDTO) => {
+        console.log("[LobbyChat] receive message:", message);
+        setMessages((prev) => [...prev, message]);
+        setTimeout(() => {
+            messageListRef.current?.scrollTo({
+                top: messageListRef.current?.scrollHeight,
+                behavior: "smooth"
+            });
+        }, 100);
+    }, []);
+
+    const { isConnected, sendLobbyChatMessage } = useWebSocket({
+        onLobbyChat: handleReceiveMessage,
+    });
+
+    console.log("[LobbyChat] isConnected:", isConnected);
     
     const handleSendMessage = (message: string) => {
         if (!me || !isConnected || !message.trim()) {
@@ -67,7 +82,7 @@ export default function LobbyChat() {
         }
         
         try {
-            webSocket.sendLobbyChatMessage({
+            sendLobbyChatMessage({
                 type: "CHAT",
                 content: message,
                 senderId: me?.id,
@@ -75,36 +90,10 @@ export default function LobbyChat() {
                 timestamp: Date.now(),
             });
             setMessageInput("");
-            setTimeout(() => {
-                messageListRef.current?.scrollTo({
-                    top: messageListRef.current?.scrollHeight,
-                    behavior: "smooth"
-                });
-            }, 100);
         } catch (error) {
             console.error("메시지 전송 실패:", error);
         }
     }
-    
-    const handleReceiveMessage = (message: ChatMessageDTO) => {
-        setMessages((prev) => [...prev, message]);
-    }
-    
-    const webSocket = useMemo(() => new WebSocketClient(), []);
-    useEffect(() => {
-        webSocket.connect(() => {
-            setIsConnected(true);
-            console.log("[LobbyChat] connected");
-            webSocket.subscribeLobbyChat((message) => {
-                handleReceiveMessage(message);
-            });
-        });
-    
-        return () => {
-            setIsConnected(false);
-            webSocket.disconnect();
-        };
-    }, [webSocket]);
     
     return (
         <Container maxW="container.md" h="100%">
@@ -131,7 +120,7 @@ export default function LobbyChat() {
                             placeholder={isConnected ? "메시지를 입력하세요" : "연결 중..."}
                             size="md"
                             value={messageInput}
-                            disabled={!isConnected}
+                            // disabled={!isConnected}
                             onChange={(e) => setMessageInput(e.target.value)}
                         />
                         <Button 
@@ -139,7 +128,7 @@ export default function LobbyChat() {
                             bgColor={"quizzle.primary"}
                             color={"white"}
                             px={6} 
-                            disabled={!isConnected}
+                            // disabled={!isConnected}
                         >
                             전송
                         </Button>

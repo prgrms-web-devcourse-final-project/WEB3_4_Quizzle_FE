@@ -73,7 +73,7 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
-      <Dialog.Trigger />
+      {/* <Dialog.Trigger /> */}
       <Dialog.Backdrop />
       <Dialog.Positioner style={{
         display: 'flex',

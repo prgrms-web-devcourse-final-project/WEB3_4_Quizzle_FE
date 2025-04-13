@@ -7,6 +7,7 @@ import RouteContextProvider from "./components/provider/RouteProvider.tsx";;
 import "./App.css";
 import { chakraTheme } from "./theme/theme.ts";
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
+import { LightMode } from "./components/ui/color-mode.tsx";
 
 const App: React.FC = () => {
     const queryClient = new QueryClient({
@@ -27,6 +28,7 @@ const App: React.FC = () => {
         <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
                 <ChakraProvider value={chakraTheme}>
+                    <LightMode>
                         <div className="app">
                             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
                                 <AdvancedSquareBackground
@@ -44,6 +46,7 @@ const App: React.FC = () => {
                                 <RouteContextProvider/>
                             </GoogleOAuthProvider>
                         </div>
+                    </LightMode>
                 </ChakraProvider>
             </QueryClientProvider>
         </ErrorBoundary>

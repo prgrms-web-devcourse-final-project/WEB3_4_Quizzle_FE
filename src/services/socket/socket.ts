@@ -58,11 +58,13 @@ export class WebSocketClient {
 
     this.stompClient.onStompError = (error) => {
       console.error('STOMP Error:', error);
+      this.isConnected = false;
       this.handleReconnect();
     };
 
     this.stompClient.onWebSocketClose = () => {
       console.log('WebSocket Connection Closed');
+      this.isConnected = false;
       this.handleReconnect();
     };
   }
@@ -80,7 +82,7 @@ export class WebSocketClient {
 
   connect(callback?: () => void) {
     if (callback) {
-      if (this.isConnected) {
+      if (this.isConnected && this.stompClient?.active) {
         callback();
       } else {
         this.connectionCallbacks.push(callback);
@@ -98,14 +100,20 @@ export class WebSocketClient {
       this.subscriptions.clear();
       this.stompClient.deactivate();
     }
+    this.isConnected = false;
   }
 
   // 로비 관련 메서드
+
+  subscribeLobby(handler: MessageHandler<string>) {
+    this.subscribe(WS_ENDPOINTS.LOBBY.SUBSCRIBE.LOBBY, handler);
+  }
+
   subscribeLobbyChat(handler: MessageHandler<ChatMessageDTO>) {
     this.subscribe(WS_ENDPOINTS.LOBBY.SUBSCRIBE.CHAT, handler);
   }
 
-  subscribeLobbyUsers(handler: MessageHandler<ChatMessageDTO>) {
+  subscribeLobbyUsers(handler: MessageHandler<string>) {
     this.subscribe(WS_ENDPOINTS.LOBBY.SUBSCRIBE.USERS, handler);
   }
 
@@ -149,8 +157,8 @@ export class WebSocketClient {
 
   // 유틸리티 메서드
   private subscribe<T>(destination: string, handler: MessageHandler<T>) {
-    if (!this.stompClient?.active) {
-      console.error('STOMP client is not active');
+    if (!this.stompClient?.active || !this.isConnected) {
+      console.error('STOMP client is not active or not connected');
       return;
     }
 
@@ -161,7 +169,15 @@ export class WebSocketClient {
 
     const subscription = this.stompClient.subscribe(destination, message => {
       try {
-        // WebSocketChatMessageResponse 형식에서 content 추출
+        console.log(`[WebSocket Recived][${destination}] message: ${message}`);
+
+        // 일반 텍스트 메시지 처리
+        // if (message.headers['content-type']?.includes('text/plain')) {
+        //     console.log('[WebSocket] Text message received:', message.body);
+        //     handler(message.body as T);
+        //     return;
+        // }
+
         const messageStr = message.body;
         const contentMatch = messageStr.match(/content=({.*?})/);
         
@@ -170,6 +186,7 @@ export class WebSocketClient {
           console.log('[WebSocket] Parsed content:', content);
           handler(content as T);
         } else {
+          handler(messageStr as T);
           console.warn('[WebSocket] Could not extract content from message:', messageStr);
         }
       } catch (error) {
@@ -185,9 +202,9 @@ export class WebSocketClient {
   }
 
   private publish<T>(destination: string, message: T) {
-    if (!this.stompClient?.active) {
-      console.error('STOMP client is not active');
-      return;
+    if (!this.stompClient?.active || !this.isConnected) {
+      console.error('STOMP client is not active or not connected');
+      throw new Error('There is no underlying STOMP connection');
     }
 
     this.stompClient.publish({

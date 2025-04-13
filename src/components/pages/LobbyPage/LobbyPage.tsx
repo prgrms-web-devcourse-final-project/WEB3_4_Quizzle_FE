@@ -12,9 +12,11 @@ import { getFriendList, getFriendRequestList } from "../../../services/remote/fr
 import FriendRequestList from "../../organisms/FirendRequestList.tsx";
 import { Stack } from "@chakra-ui/react";
 import LobbyChat from "../../organisms/Chat/LobbyChat.tsx";
+import useWebSocket from "../../../hooks/webSocket.ts";
+import { useCallback } from "react";
 
 const LobbyPage: React.FC = () => {
-    const { data: roomListResponse, isLoading: isRoomListLoading } = useQuery({
+    const { data: roomListResponse, isLoading: isRoomListLoading, refetch: refetchRoomList } = useQuery({
         queryKey: ["roomList"],
         queryFn: getRoomList,
         refetchOnMount: true,
@@ -33,6 +35,27 @@ const LobbyPage: React.FC = () => {
         queryFn: getFriendRequestList,
         refetchOnMount: true,
         staleTime: 0,
+    })
+
+    const handleReceiveLobbyMessage = useCallback((message: string) => {
+        console.log("[LobbyPage] receive message:", message);
+        const [type, roomId] = message.split(":");
+        if (type === "ROOM_CREATED") {
+            console.log("[LobbyPage] room created:", roomId);
+            refetchRoomList(); // TODO- room하나만 추가
+        } else if (type === "ROOM_DELETED") {
+            console.log("[LobbyPage] room deleted:", roomId);
+            refetchRoomList(); // TODO- room하나만 삭제
+        }
+    }, []);
+
+    const handleReceiveLobbyUsersMessage = useCallback((message: string) => {
+        console.log("[LobbyPage] receive message:", message);
+    }, []);
+
+    useWebSocket({
+        onLobby: handleReceiveLobbyMessage,
+        onLobbyUsers: handleReceiveLobbyUsersMessage,
     })
 
     if (isRoomListLoading || isFriendListLoading || isFriendRequestListLoading) {

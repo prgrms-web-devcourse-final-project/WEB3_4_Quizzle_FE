@@ -35,7 +35,7 @@ const renderPageWith = (route: Route) => {
     case "GAME_ROOM":
       return <GameRoomPage roomId={route.params?.roomId ?? ""}/>
     case "QUIZ":
-      return <QuizPage/>
+      return <QuizPage roomId={route.params?.roomId ?? ""}/>
     case "PROFILE_SETTING":
       return <ProfileSettingPage/>
     case "RESULT":

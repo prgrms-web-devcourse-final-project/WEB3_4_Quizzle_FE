@@ -1,7 +1,8 @@
 import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
 const config = {
-    initialColorMode: { value: "light" },
+    initialColorMode: "light",
+    useSystemColorMode: false,
     breakpoints: {
         base: { value: "0px" },
         xs: { value: "360px" },
@@ -10,7 +11,6 @@ const config = {
         lg: { value: "1024px" },
         xl: { value: "1280px" },
     },
-    useSystemColorMode: false,
     colors: {
         quizzle: {
             black: { value: "#000" },
@@ -69,6 +69,10 @@ const config = {
                 color: { value: "{colors.fika.white}" },
                 background: { value: "{colors.fika.pink.300}" },
             },
+            body: {
+                bg: { value: "#FFFFFF" },
+                color: { value: "#000000" }
+            }
         },
     },
 };
@@ -77,8 +81,14 @@ const semanticConfig = {
     colors: {}
 };
 
+const customConfig = {
+    ...defaultConfig,
+    initialColorMode: "light",
+    useSystemColorMode: false
+};
+
 export const chakraTheme = createSystem(
-    defaultConfig,
+    customConfig,
     defineConfig({
         theme: {
             tokens: {
