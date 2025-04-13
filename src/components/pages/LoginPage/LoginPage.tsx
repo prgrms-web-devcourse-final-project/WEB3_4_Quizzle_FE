@@ -23,7 +23,6 @@ const LoginPage = () => {
     const userInfo = await QuizzleAPI.checkOAuthValid(response.data.accessToken, response.data.refreshToken)
     console.log(userInfo);
 
-
     goToLobby();
   }
 

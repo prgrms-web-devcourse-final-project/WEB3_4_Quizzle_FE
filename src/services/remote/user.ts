@@ -47,7 +47,7 @@ export async function logout() {
 
 export async function getAvailableAvatarList(userId: number) {
     try {
-        const response = await QuizzleAPI.get(`/api/v1/members/${userId}/avatar/available`);
+        const response = await QuizzleAPI.get(`/api/v1/members/${userId}/avatars/available`);
         // @ts-expect-error response type from QuizzleAPI is not properly typed
         return response.data;
     } catch (error) {
@@ -58,7 +58,7 @@ export async function getAvailableAvatarList(userId: number) {
 
 export async function getOwnedAvatarList(userId: number) {
     try {
-        const response = await QuizzleAPI.get(`/api/v1/members/${userId}/avatar/owned`);
+        const response = await QuizzleAPI.get(`/api/v1/members/${userId}/avatars/owned`);
         // @ts-expect-error response type from QuizzleAPI is not properly typed
         return response.data;
     } catch (error) {

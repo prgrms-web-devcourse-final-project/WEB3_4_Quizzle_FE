@@ -45,7 +45,7 @@ function ChatMessage({ message }: { message: ChatMessageDTO }) {
                         color={isMine ? "white" : undefined}
                         p={3}
                         borderRadius="lg"
-                    >
+                        >
                         <Text textAlign={"left"}>{message.content}</Text>
                     </Box>
                 </Stack>
@@ -55,18 +55,17 @@ function ChatMessage({ message }: { message: ChatMessageDTO }) {
 }
 
 export default function LobbyChat() {
-    const webSocket = useMemo(() => new WebSocketClient(), []);
     const [messages, setMessages] = useState<ChatMessageDTO[]>([]);
     const [messageInput, setMessageInput] = useState<string>("");
     const [isConnected, setIsConnected] = useState(false);
     const messageListRef = useRef<HTMLDivElement>(null);
     const { user: me } = useUser();
-
+    
     const handleSendMessage = (message: string) => {
         if (!me || !isConnected || !message.trim()) {
             return;
         }
-
+        
         try {
             webSocket.sendLobbyChatMessage({
                 type: "CHAT",
@@ -86,11 +85,12 @@ export default function LobbyChat() {
             console.error("메시지 전송 실패:", error);
         }
     }
-
+    
     const handleReceiveMessage = (message: ChatMessageDTO) => {
         setMessages((prev) => [...prev, message]);
     }
-
+    
+    const webSocket = useMemo(() => new WebSocketClient(), []);
     useEffect(() => {
         webSocket.connect(() => {
             setIsConnected(true);

@@ -1,62 +1,75 @@
 import type React from "react"
-import {useContext, useState} from "react"
+import {useContext, useEffect, useMemo, useState, useCallback} from "react"
 import AppTemplate from "../../templates/AppTemplate/AppTemplate.tsx";
-import Button, {ButtonVariant} from "../../atoms/Button/Button.tsx";
 import PlayerList from "../../organisms/PlayerList/PlayerList.tsx";
 import GameRoomHeader from "../../organisms/Headers/QuizHeader/GameRoomHeader.tsx";
 import "./GameRoomPage.scss"
 import { getRoom, leaveRoom, readyGame, startGame } from "../../../services/remote/room.ts";
 import { RouteDispatchContext } from "../../provider/RouteProvider.tsx";
 import { useQuery } from "@tanstack/react-query";
+import useUser from "../../../hooks/user.ts";
+import { Button } from "@chakra-ui/react";
+import { WebSocketClient } from "../../../services/socket/socket.ts";
+import { ChatMessageDTO } from "../../../services/socket/types.ts";
 
 const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
-    const [isReady, setIsReady] = useState(false);
-    const isHost = true;
+    const webSocket = useMemo(() => new WebSocketClient(), []);
+    const [isConnected, setIsConnected] = useState(false);
     const dispatchRouter = useContext(RouteDispatchContext)
-
-    const {data: room} = useQuery({
+    
+    const {user: me, isLoading: isMeLoading} = useUser();
+    
+    const {data: room, refetch: refetchRoom} = useQuery({
         queryKey: ["room", roomId],
         queryFn: () => getRoom(roomId)
     })
+    
+    const handleReceiveMessage = useCallback((message: ChatMessageDTO) => {
+        if (!me || !isConnected) {
+            return;
+        }
+        refetchRoom();
+        console.log("message : ", message)
+    }, [isConnected, me, refetchRoom]);
 
-    if (!room) {
+    useEffect(() => {
+        webSocket.connect(() => {
+            setIsConnected(true);
+            console.log("[LobbyChat] connected");
+            webSocket.subscribeLobbyChat((message) => {
+                handleReceiveMessage(message);
+            });
+        });
+    
+        return () => {
+            setIsConnected(false);
+            webSocket.disconnect();
+        };
+    }, [handleReceiveMessage, webSocket]);
+
+    if (!room || isMeLoading) {
         return <div>로딩중...</div>
     }
 
-    const handleReady = () => {
-        readyGame(roomId);
-        setIsReady(!isReady);
+    const isMeReady = room?.readyPlayers.includes(me?.id ?? 0);
+
+    const isHost = room.ownerId === me?.id;
+
+    console.log("isMeReady : ", isMeReady)
+
+    const handleReady = async () => {
+        await readyGame(roomId);
+        refetchRoom();
     }
 
-    const handleStart = () => {
-        startGame(roomId);
+    const handleStart = async () => {
+        await startGame(roomId);
         dispatchRouter("QUIZ")
     }
 
     const handleLeave = async () => {
         await leaveRoom(roomId)
         dispatchRouter("LOBBY")
-    }
-
-    const renderButton = (isHost?: boolean, isReady?: boolean) => {
-        const buttonProps = {
-            variant: "primary" as ButtonVariant,
-            buttonText: "준비하기",
-            onClick: handleReady
-        }
-
-        if (isHost) {
-            buttonProps.buttonText = "시작하기";
-            buttonProps.onClick = handleStart;
-        } else if (isReady) {
-            buttonProps.buttonText = "준비완료";
-            buttonProps.variant = "secondary";
-        }
-
-        return <Button size="lg" className="game-room-template__ready-button" onClick={buttonProps.onClick}
-                       variant={buttonProps.variant}>
-            {buttonProps.buttonText}
-        </Button>
     }
 
     return (
@@ -85,7 +98,8 @@ const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
                                      <span>{room.difficulty}</span>
                                  </div>
                              </div>
-                             {renderButton(isHost, isReady)}
+                             {!isHost && <Button bgColor="quizzle.primary" color="white" w="full" h="200px" fontSize="3xl" rounded={"20px"} onClick={handleReady}>{isMeReady ? "준비취소" : "준비하기"}</Button>}
+                             {isHost && <Button bgColor="quizzle.primary" color="white" w="full" h="200px" fontSize="3xl" rounded={"20px"} onClick={handleStart} disabled={room.readyPlayers.length !== room.players.length}>게임 시작</Button>}
                          </div>
                      </div>}/>
     )

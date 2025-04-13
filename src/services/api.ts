@@ -13,7 +13,7 @@ export class APIClient {
     const urlSearchParams = new URLSearchParams(queryParams);
     const queryParamString = urlSearchParams.toString();
 
-    url = `${url}?${queryParamString}`;
+    url = `${url}` + (queryParamString ? `?${queryParamString}` : "");
 
     return url;
   };
@@ -68,6 +68,8 @@ export class QuizzleAPI extends APIClient {
       status: "SUCCESS"
     }
     const checkOAuthValidResponse = await this.get(API_PATH.AUTH_OAUTH2_CALLBACK, queryParam);
+
+    console.log("checkOAuthValidResponse : ", checkOAuthValidResponse);
 
     return checkOAuthValidResponse;
   }
