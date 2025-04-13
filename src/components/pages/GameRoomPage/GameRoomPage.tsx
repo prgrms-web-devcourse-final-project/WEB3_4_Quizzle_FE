@@ -5,7 +5,7 @@ import Button, {ButtonVariant} from "../../atoms/Button/Button.tsx";
 import PlayerList from "../../organisms/PlayerList/PlayerList.tsx";
 import GameRoomHeader from "../../organisms/Headers/QuizHeader/GameRoomHeader.tsx";
 import "./GameRoomPage.scss"
-import { getRoom, leaveRoom } from "../../../services/remote/room.ts";
+import { getRoom, leaveRoom, readyGame, startGame } from "../../../services/remote/room.ts";
 import { RouteDispatchContext } from "../../provider/RouteProvider.tsx";
 import { useQuery } from "@tanstack/react-query";
 
@@ -24,11 +24,13 @@ const GameRoomPage: React.FC<{roomId: string}> = ({roomId}) => {
     }
 
     const handleReady = () => {
-        setIsReady(!isReady)
+        readyGame(roomId);
+        setIsReady(!isReady);
     }
 
     const handleStart = () => {
-        console.log("Game started")
+        startGame(roomId);
+        dispatchRouter("QUIZ")
     }
 
     const handleLeave = async () => {

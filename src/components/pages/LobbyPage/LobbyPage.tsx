@@ -11,9 +11,9 @@ import { mockFriendList } from "../../../mock/user.ts";
 import { getFriendList, getFriendRequestList } from "../../../services/remote/friend.ts";
 import FriendRequestList from "../../organisms/FirendRequestList.tsx";
 import { Stack } from "@chakra-ui/react";
+import LobbyChat from "../../organisms/Chat/LobbyChat.tsx";
 
 const LobbyPage: React.FC = () => {
-
     const { data: roomListResponse, isLoading: isRoomListLoading } = useQuery({
         queryKey: ["roomList"],
         queryFn: getRoomList,
@@ -34,10 +34,6 @@ const LobbyPage: React.FC = () => {
         refetchOnMount: true,
         staleTime: 0,
     })
-    console.log("[LobbyPage] roomListResponse : ", roomListResponse)
-    console.log("[LobbyPage] friendListResponse : ", friendListResponse)
-    console.log("[LobbyPage] firendRequestedList : ", firendRequestedList)
-
 
     if (isRoomListLoading || isFriendListLoading || isFriendRequestListLoading) {
         return <div>Loading...</div>
@@ -52,6 +48,7 @@ const LobbyPage: React.FC = () => {
                 <Stack w={"300px"}>
                     {firendRequestedList.length > 0 && <FriendRequestList friendRequests={firendRequestedList}/>}
                     <FriendList players={friendListResponse ?? mockFriendList}/>
+                    <LobbyChat />
                 </Stack>
             </div>
         }/>
