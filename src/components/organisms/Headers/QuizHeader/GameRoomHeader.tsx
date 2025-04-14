@@ -34,7 +34,7 @@ const GameRoomHeader = ({roomId, onStart, onLeave}: GameRoomHeaderProps) => {
             <div style={containerStyle}>
                 <h2 className="game-room-template__title">Room #{roomId}</h2>
                 <div style={actionsStyle}>
-                    <Button onClick={onStart}>친구 초대</Button>
+                    {/* <Button onClick={onStart}>친구 초대</Button> */}
                     <Button variant="secondary" onClick={onLeave}>
                         방 나가기
                     </Button>

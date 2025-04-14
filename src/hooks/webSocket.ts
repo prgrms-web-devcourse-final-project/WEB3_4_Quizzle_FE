@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { WebSocketClient } from "../services/socket/socket";
+import { useEffect, useState, useCallback } from "react";
 import { ChatMessageDTO, RoomMessageDTO, WebSocketQuizSubmitRequest, WebSocketQuizSubmitResponse } from "../services/socket/types.ts";
+import { useWebSocketContext } from "../contexts/useWebSocketContext";
 
 interface UseWebSocketProps {
     roomId?: string;
@@ -12,6 +12,7 @@ interface UseWebSocketProps {
     onRoomUpdate?: (message: RoomMessageDTO) => void;
     onGameUpdate?: (message: RoomMessageDTO) => void;
     onQuizUpdate?: (message: WebSocketQuizSubmitResponse) => void;
+    onGameChat?: (message: ChatMessageDTO) => void;
     enabled?: boolean;
 }
 
@@ -25,38 +26,15 @@ export default function useWebSocket({
     onRoomUpdate,
     onGameUpdate,
     onQuizUpdate,
+    onGameChat,
     enabled = true 
 }: UseWebSocketProps) {
-    const webSocket = useMemo(() => new WebSocketClient(), []);
+    const { webSocket } = useWebSocketContext();
     const [isConnected, setIsConnected] = useState(false);
 
-    // 콜백 함수들을 ref로 관리
-    const callbacksRef = useRef({
-        onLobby,
-        onLobbyChat,
-        onLobbyUsers,
-        onRoomChat,
-        onRoomUpdate,
-        onGameUpdate,
-        onQuizUpdate
-    });
-
-    // 콜백 ref 업데이트
     useEffect(() => {
-        callbacksRef.current = {
-            onLobby,
-            onLobbyChat,
-            onLobbyUsers,
-            onRoomChat,
-            onRoomUpdate,
-            onGameUpdate,
-            onQuizUpdate
-        };
-    }, [onLobby, onLobbyChat, onLobbyUsers, onRoomChat, onRoomUpdate, onGameUpdate, onQuizUpdate]);
-
-    useEffect(() => {
-        if (!enabled) {
-            webSocket.disconnect();
+        if (!webSocket || !enabled) {
+            webSocket?.disconnect();
             setIsConnected(false);
             return;
         }
@@ -65,48 +43,64 @@ export default function useWebSocket({
             setIsConnected(true);
             
             // 로비 관련 구독
-            if (callbacksRef.current.onLobby) {
-                webSocket.subscribeLobby(callbacksRef.current.onLobby);
+            if (onLobby) {
+                webSocket.subscribeLobby(onLobby);
             }
 
-            if (callbacksRef.current.onLobbyChat) {
-                webSocket.subscribeLobbyChat(callbacksRef.current.onLobbyChat);
+            if (onLobbyChat) {
+                webSocket.subscribeLobbyChat(onLobbyChat);
             }
             
-            if (callbacksRef.current.onLobbyUsers) {
-                webSocket.subscribeLobbyUsers(callbacksRef.current.onLobbyUsers);
+            if (onLobbyUsers) {
+                webSocket.subscribeLobbyUsers(onLobbyUsers);
             }
 
             // 방 관련 구독
             if (roomId) {
-                if (callbacksRef.current.onRoomChat) {
-                    webSocket.subscribeRoomChat(roomId, callbacksRef.current.onRoomChat);
+                if (onRoomChat) {
+                    webSocket.subscribeRoomChat(roomId, onRoomChat);
                 }
                 
-                if (callbacksRef.current.onRoomUpdate) {
-                    webSocket.subscribeRoomUpdates(roomId, callbacksRef.current.onRoomUpdate);
+                if (onRoomUpdate) {
+                    webSocket.subscribeRoomUpdates(roomId, onRoomUpdate);
                 }
 
-                if (callbacksRef.current.onGameUpdate) {
-                    webSocket.subscribeGameUpdates(roomId, callbacksRef.current.onGameUpdate);
+                if (onGameUpdate) {
+                    webSocket.subscribeGameUpdates(roomId, onGameUpdate);
+                }
+
+                if (onGameChat) {
+                    webSocket.subscribeGameChat(roomId, onGameChat);
                 }
             }
 
             // 퀴즈 관련 구독
-            if (quizId && callbacksRef.current.onQuizUpdate) {
-                webSocket.subscribeQuizUpdates(quizId, callbacksRef.current.onQuizUpdate);
+            if (quizId && onQuizUpdate) {
+                webSocket.subscribeQuizUpdates(quizId, onQuizUpdate);
             }
         });
 
         return () => {
-            webSocket.disconnect();
-            setIsConnected(false);
+            webSocket.clearSubscriptions();
         };
-    }, [webSocket, enabled, roomId, quizId]); // 콜백 의존성 제거
+    }, [
+        webSocket,
+        enabled,
+        roomId,
+        quizId,
+        onLobby,
+        onLobbyChat,
+        onLobbyUsers,
+        onRoomChat,
+        onRoomUpdate,
+        onGameUpdate,
+        onQuizUpdate,
+        onGameChat
+    ]);
 
     // 로비 관련 메서드
     const sendLobbyChatMessage = useCallback((message: ChatMessageDTO) => {
-        if (!isConnected) {
+        if (!isConnected || !webSocket) {
             throw new Error('WebSocket is not connected');
         }
         try {
@@ -119,7 +113,7 @@ export default function useWebSocket({
 
     // 방 관련 메서드
     const sendRoomChatMessage = useCallback((roomId: string, message: ChatMessageDTO) => {
-        if (!isConnected) {
+        if (!isConnected || !webSocket) {
             throw new Error('WebSocket is not connected');
         }
         try {
@@ -131,7 +125,7 @@ export default function useWebSocket({
     }, [isConnected, webSocket]);
 
     const sendRoomMessage = useCallback((roomId: string, message: RoomMessageDTO) => {
-        if (!isConnected) {
+        if (!isConnected || !webSocket) {
             throw new Error('WebSocket is not connected');
         }
         try {
@@ -144,7 +138,7 @@ export default function useWebSocket({
 
     // 게임 관련 메서드
     const startGame = useCallback((roomId: string) => {
-        if (!isConnected) {
+        if (!isConnected || !webSocket) {
             throw new Error('WebSocket is not connected');
         }
         try {
@@ -155,8 +149,20 @@ export default function useWebSocket({
         }
     }, [isConnected, webSocket]);
 
+    const sendGameChatMessage = useCallback((roomId: string, message: ChatMessageDTO) => {
+        if (!isConnected || !webSocket) {
+            throw new Error('WebSocket is not connected');
+        }
+        try {
+            webSocket.sendGameChatMessage(roomId, message);
+        } catch (error) {
+            console.error('Failed to send game chat message:', error);
+            throw error;
+        }
+    }, [isConnected, webSocket]);
+
     const submitQuizAnswer = useCallback((quizId: string, answer: WebSocketQuizSubmitRequest) => {
-        if (!isConnected) {
+        if (!isConnected || !webSocket) {
             throw new Error('WebSocket is not connected');
         }
         try {
@@ -169,7 +175,6 @@ export default function useWebSocket({
 
     return {
         isConnected,
-        webSocket,
         // 로비 관련
         sendLobbyChatMessage,
         // 방 관련
@@ -177,6 +182,7 @@ export default function useWebSocket({
         sendRoomMessage,
         // 게임 관련
         startGame,
-        submitQuizAnswer
+        submitQuizAnswer,
+        sendGameChatMessage
     };
 }

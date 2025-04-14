@@ -14,7 +14,6 @@ export interface RoomUserData {
   isOwner: boolean;
   isSubmitted: boolean;
 }
-
 export interface RoomMessageDTO {
   type: 'JOIN' | 'LEAVE' | 'READY' | 'UNREADY' | 'GAME_START' | 'GAME_END' 
     | 'ANSWER_SUBMIT' | 'TIMER' | 'ROUND_START' | 'ROUND_END' | 'SYSTEM';

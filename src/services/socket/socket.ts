@@ -4,7 +4,7 @@ import { ChatMessageDTO, RoomMessageDTO, WebSocketQuizSubmitRequest, WebSocketQu
 type MessageHandler<T> = (message: T) => void;
 
 export class WebSocketClient {
-  // private static instance: WebSocketClient | null = null;
+  private static instance: WebSocketClient | null = null;
   private stompClient: Stomp.Client | null = null;
   private subscriptions: Map<string, Stomp.StompSubscription> = new Map();
   private reconnectAttempts: number = 0;
@@ -12,16 +12,16 @@ export class WebSocketClient {
   private isConnected: boolean = false;
   private connectionCallbacks: (() => void)[] = [];
 
-  constructor() {
+  private constructor() {
     this.initializeClient();
   }
 
-  // public static getInstance(): WebSocketClient {
-  //   if (!WebSocketClient.instance) {
-  //     WebSocketClient.instance = new WebSocketClient();
-  //   }
-  //   return WebSocketClient.instance;
-  // }
+  public static getInstance(): WebSocketClient {
+    if (!WebSocketClient.instance) {
+      WebSocketClient.instance = new WebSocketClient();
+    }
+    return WebSocketClient.instance;
+  }
 
   private initializeClient() {
     //ws://localhost:8080/ws/websocket
@@ -103,6 +103,11 @@ export class WebSocketClient {
     this.isConnected = false;
   }
 
+  clearSubscriptions() {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    this.subscriptions.clear();
+  }
+
   // 로비 관련 메서드
 
   subscribeLobby(handler: MessageHandler<string>) {
@@ -147,16 +152,26 @@ export class WebSocketClient {
     this.subscribe(WS_ENDPOINTS.GAME.SUBSCRIBE.QUIZ_UPDATES(quizId), handler);
   }
 
+  subscribeGameChat(roomId: string, handler: MessageHandler<ChatMessageDTO>) {
+    console.log("[WebSocketClient] subscribeGameChat : ", WS_ENDPOINTS.GAME.SUBSCRIBE.CHAT(roomId))
+    this.subscribe(WS_ENDPOINTS.GAME.SUBSCRIBE.CHAT(roomId), handler);
+  }
+
+  sendGameChatMessage(roomId: string, message: ChatMessageDTO) {
+    this.publish(WS_ENDPOINTS.GAME.PUBLISH.CHAT(roomId), message);
+  }
+
   submitQuizAnswer(quizId: string, answer: WebSocketQuizSubmitRequest) {
     this.publish(WS_ENDPOINTS.GAME.PUBLISH.QUIZ_SUBMIT(quizId), answer);
   }
 
   startGame(roomId: string) {
-    this.publish(WS_ENDPOINTS.GAME.PUBLISH.START(roomId), {});
+    this.publish(WS_ENDPOINTS.GAME.PUBLISH.START(roomId), {message: "게임이 시작되었습니다."});
   }
 
   // 유틸리티 메서드
   private subscribe<T>(destination: string, handler: MessageHandler<T>) {
+    console.log("[WebSocketClient] subscribe : ", destination)
     if (!this.stompClient?.active || !this.isConnected) {
       console.error('STOMP client is not active or not connected');
       return;
@@ -169,28 +184,53 @@ export class WebSocketClient {
 
     const subscription = this.stompClient.subscribe(destination, message => {
       try {
-        console.log(`[WebSocket Recived][${destination}] message: ${message}`);
+        console.log(`[WebSocket Received][${destination}] message:`, message.body);
 
-        // 일반 텍스트 메시지 처리
-        // if (message.headers['content-type']?.includes('text/plain')) {
-        //     console.log('[WebSocket] Text message received:', message.body);
-        //     handler(message.body as T);
-        //     return;
-        // }
+        const messageBody = message.body;
 
-        const messageStr = message.body;
-        const contentMatch = messageStr.match(/content=({.*?})/);
-        
-        if (contentMatch && contentMatch[1]) {
-          const content = JSON.parse(contentMatch[1]);
-          console.log('[WebSocket] Parsed content:', content);
-          handler(content as T);
-        } else {
-          handler(messageStr as T);
-          console.warn('[WebSocket] Could not extract content from message:', messageStr);
+        // 이미 JSON 객체인 경우 처리
+        try {
+          const parsedMessage = JSON.parse(messageBody);
+          
+          // data 필드가 문자열로 된 JSON이고 RoomMessageDTO 타입인 경우 파싱
+          if (
+            'data' in parsedMessage && 
+            typeof parsedMessage.data === 'string' &&
+            'type' in parsedMessage &&
+            'senderId' in parsedMessage
+          ) {
+            try {
+              parsedMessage.data = JSON.parse(parsedMessage.data);
+            } catch (dataError) {
+              console.warn('[WebSocket] Failed to parse data field:', dataError);
+            }
+          }
+          
+          console.log('[WebSocket] Parsed message:', parsedMessage);
+          handler(parsedMessage as T);
+          return;
+        } catch (e) {
+          console.warn('[WebSocket] Failed to parse message:', e);
+          // JSON 파싱 실패 시 content= 형식 처리 시도
+          const contentMatch = messageBody.match(/content=({.*?})/);
+          if (contentMatch && contentMatch[1]) {
+            try {
+              const parsedContent = JSON.parse(contentMatch[1]);
+              console.log('[WebSocket] Parsed content:', parsedContent);
+              handler(parsedContent as T);
+              return;
+            } catch (contentError) {
+              console.warn('[WebSocket] Failed to parse content:', contentError);
+            }
+          }
         }
+
+        // 모든 파싱 시도 실패 시 원본 메시지 전달
+        console.warn('[WebSocket] Using raw message:', messageBody);
+        handler(messageBody as T);
+
       } catch (error) {
-        console.error('Message handling error:', {
+        console.error('[WebSocket] Message handling error:', {
           error,
           message: message.body,
           destination
@@ -215,6 +255,34 @@ export class WebSocketClient {
 
   private convertHttpToWs(url: string): string {
     return url.replace(/^http/, 'ws');
+  }
+
+  // 구독 해제 메서드 추가
+  unsubscribeFromRoom(roomId: string) {
+    // 방 관련 모든 구독 해제
+    const roomSubscriptions = [
+      WS_ENDPOINTS.ROOM.SUBSCRIBE.CHAT(roomId),
+      WS_ENDPOINTS.ROOM.SUBSCRIBE.ROOM(roomId),
+      WS_ENDPOINTS.GAME.SUBSCRIBE.GAME(roomId),
+      WS_ENDPOINTS.GAME.SUBSCRIBE.CHAT(roomId)
+    ];
+
+    roomSubscriptions.forEach(endpoint => {
+      const subscription = this.subscriptions.get(endpoint);
+      if (subscription) {
+        subscription.unsubscribe();
+        this.subscriptions.delete(endpoint);
+      }
+    });
+  }
+
+  unsubscribeFromQuiz(quizId: string) {
+    const quizEndpoint = WS_ENDPOINTS.GAME.SUBSCRIBE.QUIZ_UPDATES(quizId);
+    const subscription = this.subscriptions.get(quizEndpoint);
+    if (subscription) {
+      subscription.unsubscribe();
+      this.subscriptions.delete(quizEndpoint);
+    }
   }
 }
 

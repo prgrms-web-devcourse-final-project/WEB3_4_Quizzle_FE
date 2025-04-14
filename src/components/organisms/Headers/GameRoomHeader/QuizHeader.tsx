@@ -1,20 +1,19 @@
-import "./QuizHeader.scss";
-
+import { Quiz } from "../../../../types/quiz";
 
 interface QuizHeaderProps {
-    currentQuestion: number;
-    questions: any[];
-    score: number;
+    currentQuestion: string;
+    quiz: Quiz;
+    timeLeft: number;
 }
 
-const QuizHeader = ({currentQuestion, questions, score}: QuizHeaderProps) => {
+const QuizHeader = ({currentQuestion, quiz, timeLeft}: QuizHeaderProps) => {
 
     return (
             <div className="quiz-header">
                 <div className="quiz-header__progress">
-                    퀴즈 {currentQuestion + 1}/{questions.length}
+                    퀴즈 {Number(currentQuestion)}/{Object.keys(quiz.quizText).length}
                 </div>
-                <div className="quiz-header__score">점수: {score}</div>
+                <div className="quiz-header__score">{`시간: ${timeLeft}s`}</div>
             </div>
     )
 }

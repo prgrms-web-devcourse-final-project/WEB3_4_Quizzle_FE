@@ -2,20 +2,22 @@ import { Dialog, Button, Input, Field} from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import Select from "../atoms/Select/Select";
 import Switch from "../atoms/Switch/Switch";
-import { createRoom } from "../../services/remote/room";
+import { createRoom, joinRoom } from "../../services/remote/room";
 import styles from './CreateRoomModal.module.scss';
 import { RouteDispatchContext } from "../provider/RouteProvider";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
+import { MainCategory, SubCategory, CATEGORIES, AnswerType } from "../../types/room";
 
 type FormValues = {
   roomName: string;
   maxPlayers: string;
   difficulty: "EASY" | "NORMAL" | "HARD";
-  mainCategory: string;
-  subCategory: string;
+  mainCategory: MainCategory;
+  subCategory: SubCategory;
   isPrivate: boolean;
   password: string;
   problemCount: number;
+  answerType: AnswerType;
 };
 
 export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
@@ -28,13 +30,29 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
       subCategory: "PHYSICS",
       isPrivate: false,
       password: "",
-      problemCount: 10
+      problemCount: 10,
+      answerType: "MULTIPLE_CHOICE"
     }
   });
 
   const routerDispatch = useContext(RouteDispatchContext);
-
   const isPrivate = watch("isPrivate");
+  const selectedMainCategory = watch("mainCategory");
+
+  const mainCategoryOptions = useMemo(() => {
+    return Object.entries(CATEGORIES).map(([key, category]) => ({
+      value: category.name,
+      label: key
+    }));
+  }, []);
+
+  const subCategoryOptions = useMemo(() => {
+    const category = Object.values(CATEGORIES).find(c => c.name === selectedMainCategory);
+    return category?.subCategories.map(subCategory => ({
+      value: subCategory,
+      label: subCategory
+    })) || [];
+  }, [selectedMainCategory]);
 
   const onSubmit = async (data: FormValues) => {
     if (!data.roomName.trim()) {
@@ -60,14 +78,15 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
       mainCategory: data.mainCategory,
       subCategory: data.subCategory,
       isPrivate: data.isPrivate,
-      problemCount: data.problemCount
+      problemCount: data.problemCount,
+      answerType: data.answerType
     });
 
     if (response.status < 200 || response.status >= 300) {
       alert("방 생성에 실패했습니다.");
       return;
     }
-    
+    await joinRoom(response.id, data.password);
     routerDispatch("GAME_ROOM", { roomId: response.id });
   };
 
@@ -136,11 +155,16 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
             <Field.Root mt={4}>
               <Field.Label>메인 카테고리</Field.Label>
               <Select
-                options={[
-                  { value: "SCIENCE", label: "과학" }
-                ]}
+                options={mainCategoryOptions}
                 value={watch("mainCategory")}
-                onChange={(value) => setValue("mainCategory", value)}
+                onChange={(value) => {
+                  setValue("mainCategory", value as MainCategory);
+                  // 메인 카테고리가 변경되면 해당 카테고리의 첫 번째 서브카테고리로 설정
+                  const category = Object.values(CATEGORIES).find(c => c.name === value);
+                  if (category) {
+                    setValue("subCategory", category.subCategories[0] as SubCategory);
+                  }
+                }}
               />
               {errors.mainCategory && <Field.ErrorText>{errors.mainCategory.message}</Field.ErrorText>}
             </Field.Root>
@@ -148,11 +172,9 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
             <Field.Root mt={4}>
               <Field.Label>서브 카테고리</Field.Label>
               <Select
-                options={[
-                  { value: "PHYSICS", label: "물리" }
-                ]}
+                options={subCategoryOptions}
                 value={watch("subCategory")}
-                onChange={(value) => setValue("subCategory", value)}
+                onChange={(value) => setValue("subCategory", value as SubCategory)}
               />
               {errors.subCategory && <Field.ErrorText>{errors.subCategory.message}</Field.ErrorText>}
             </Field.Root>
@@ -160,11 +182,24 @@ export default function CreateRoomModal({ isOpen, onClose }: { isOpen: boolean, 
             <Field.Root>
               <Field.Label>퀴즈 갯수</Field.Label>
               <Input 
-                {...register("problemCount", { required: "방 이름을 입력해주세요." })}
+                {...register("problemCount", { required: "퀴즈 갯수를 입력해주세요." })}
                 type="number"
                 placeholder="퀴즈 갯수를 입력하세요"
               />
               {errors.problemCount && <Field.ErrorText>{errors.problemCount.message}</Field.ErrorText>}
+            </Field.Root>
+
+            <Field.Root mt={4}>
+              <Field.Label>답변 유형</Field.Label>
+              <Select
+                options={[
+                  { value: "MULTIPLE_CHOICE", label: "객관식" },
+                  { value: "TRUE_FALSE", label: "O/X" }
+                ]}
+                value={watch("answerType")}
+                onChange={(value) => setValue("answerType", value as "MULTIPLE_CHOICE" | "TRUE_FALSE")}
+              />
+              {errors.answerType && <Field.ErrorText>{errors.answerType.message}</Field.ErrorText>}
             </Field.Root>
 
             <Field.Root mt={4}>

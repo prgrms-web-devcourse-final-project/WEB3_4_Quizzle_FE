@@ -37,14 +37,11 @@ const PlayerItem: React.FC<PlayerItemProps> = ({playerId, isOwner, isReady}) => 
     }
     
     const nameStyle = {
+        color: isReady ? "green" : "#adb5bd",
+        fontSize: "0.875rem",
         fontWeight: 500,
     }
-    
-    const statusStyle = {
-        fontSize: "0.875rem",
-        color: isReady ? "green" : "#adb5bd", // TODO: 준비 상태에 따라 색상 변경
-    }
-    
+
     const scoreStyle = {
         fontWeight: "bold" as const,
         color: "#5e3bee",
@@ -103,8 +100,7 @@ const PlayerItem: React.FC<PlayerItemProps> = ({playerId, isOwner, isReady}) => 
                 )}
             </div>
             <div style={infoStyle}>
-                <div style={nameStyle}>{user.nickname}</div>
-                {user.isReady !== undefined && <div style={statusStyle}>{user.isReady ? "Ready" : "Not Ready"}</div>}
+                <div style={nameStyle} >{user.nickname}</div>
             </div>
             {user.score !== undefined && <div style={scoreStyle}>{user.score}</div>}
         </div>

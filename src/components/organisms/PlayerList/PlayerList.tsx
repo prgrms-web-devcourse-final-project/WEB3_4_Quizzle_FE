@@ -77,9 +77,6 @@ const PlayerList: React.FC<PlayerListProps> = ({title, type = "list", playerIds,
         }
     }
 
-    console.log("ownerId : ", ownerId)
-
-
     return (
         <Card className="player-list-container">
             {renderTitle()}

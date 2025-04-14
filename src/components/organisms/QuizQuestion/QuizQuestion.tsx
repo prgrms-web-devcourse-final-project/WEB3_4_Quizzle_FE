@@ -12,13 +12,15 @@ export interface QuizQuestionOption {
 
 export interface QuizQuestionProps {
     question: string
-    options: QuizQuestionOption[]
+    options: string[]
     timeLeft?: number
     onAnswer?: (optionId: string) => void
 }
 
 const QuizQuestion: React.FC<QuizQuestionProps> = ({question, options, timeLeft, onAnswer}) => {
     const [selectedOption, setSelectedOption] = useState<string | null>(null)
+
+    const optionIds = options.map((option) => option[0])
 
     const handleOptionClick = (optionId: string) => {
         setSelectedOption(optionId)
@@ -74,13 +76,13 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({question, options, timeLeft,
             )}
             <h2 style={titleStyle}>{question}</h2>
             <div style={optionsStyle}>
-                {options.map((option) => (
+                {options.map((option, index) => (
                     <QuizOption
-                        key={option.id}
-                        label={option.label}
-                        value={option.value}
-                        selected={selectedOption === option.id}
-                        onClick={() => handleOptionClick(option.id)}
+                        key={`option-${optionIds[index]}`}
+                        label={option}
+                        value={optionIds[index]}
+                        selected={selectedOption === optionIds[index]}
+                        onClick={() => handleOptionClick(optionIds[index])}
                     />
                 ))}
             </div>

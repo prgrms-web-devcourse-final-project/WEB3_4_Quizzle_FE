@@ -5,11 +5,13 @@ import GameRoomPage from "../pages/GameRoomPage/GameRoomPage.tsx";
 import QuizPage from "../pages/QuizPage/QuizPage.tsx";
 import ResultsPage from "../pages/ResultsPage/ResultsPage.tsx";
 import ProfileSettingPage from '../pages/ProfileSettingPage/ProfileSettingPage.tsx';
+import { Quiz } from '../../types/quiz.ts';
 
 type RouteParams = {
   roomId?: string;
   quizId?: string;
   score?: number;
+  quiz?: Quiz;
 }
 
 type Route = {
@@ -25,17 +27,21 @@ export const RouteContext = createContext<Route>(DEFAULT_ROUTE);
 export const RouteDispatchContext = createContext<(routeToChange: Route['name'], params?: RouteParams) => void>(() => {});
 
 const renderPageWith = (route: Route) => {
-
-  console.log(route);
   switch (route.name) {
     case "LOGIN":
       return <LoginPage/>
     case "LOBBY":
       return <LobbyPage/>
     case "GAME_ROOM":
-      return <GameRoomPage roomId={route.params?.roomId ?? ""}/>
+      if (!route.params?.roomId) {
+        throw new Error("GameRoom 라우트에는 roomId가 필요합니다")
+      };
+      return <GameRoomPage roomId={route.params.roomId}/>
     case "QUIZ":
-      return <QuizPage roomId={route.params?.roomId ?? ""}/>
+      if (!route.params?.roomId || !route.params?.quiz) throw new Error("Quiz 라우트에는 roomId와 quiz가 필요합니다");
+      return (
+        <QuizPage roomId={route.params.roomId} quiz={route.params.quiz}/>
+      )
     case "PROFILE_SETTING":
       return <ProfileSettingPage/>
     case "RESULT":

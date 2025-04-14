@@ -8,6 +8,7 @@ import "./App.css";
 import { chakraTheme } from "./theme/theme.ts";
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import { LightMode } from "./components/ui/color-mode.tsx";
+import { WebSocketProvider } from './contexts/WebSocketContext';
 
 const App: React.FC = () => {
     const queryClient = new QueryClient({
@@ -27,27 +28,29 @@ const App: React.FC = () => {
     return (
         <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
-                <ChakraProvider value={chakraTheme}>
-                    <LightMode>
-                        <div className="app">
-                            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
-                                <AdvancedSquareBackground
-                                    particleCount={100}
-                                    primaryColor="#853BE1"
-                                    secondaryColor="#ffffff"
-                                    centerOffsetX={0.2}
-                                    centerOffsetY={-0.1}
-                                    mouseInfluence={1000}
-                                    minSize={5}
-                                    maxSize={20}
-                                    pulseEffect={false}
-                                    multipleOrbits={true}
-                                />
-                                <RouteContextProvider/>
-                            </GoogleOAuthProvider>
-                        </div>
-                    </LightMode>
-                </ChakraProvider>
+                <WebSocketProvider>
+                    <ChakraProvider value={chakraTheme}>
+                        <LightMode>
+                            <div className="app">
+                                <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
+                                    <AdvancedSquareBackground
+                                        particleCount={100}
+                                        primaryColor="#853BE1"
+                                        secondaryColor="#ffffff"
+                                        centerOffsetX={0.2}
+                                        centerOffsetY={-0.1}
+                                        mouseInfluence={1000}
+                                        minSize={5}
+                                        maxSize={20}
+                                        pulseEffect={false}
+                                        multipleOrbits={true}
+                                    />
+                                    <RouteContextProvider/>
+                                </GoogleOAuthProvider>
+                            </div>
+                        </LightMode>
+                    </ChakraProvider>
+                </WebSocketProvider>
             </QueryClientProvider>
         </ErrorBoundary>
     )

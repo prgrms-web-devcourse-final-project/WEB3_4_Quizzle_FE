@@ -1,3 +1,5 @@
+import { RoomUpdateRequest } from "../../types/request";
+import { AnswerType, MainCategory, SubCategory } from "../../types/room";
 import { QuizzleAPI } from "../api";
 
 export async function getRoomList() {
@@ -37,9 +39,9 @@ export async function createRoom({
   title: string;
   capacity?: number;
   difficulty?: "EASY" | "NORMAL" | "HARD";
-  mainCategory?: string;
-  subCategory?: string;
-  answerType?: "MULTIPLE_CHOICE" | "O/X";
+  mainCategory?: MainCategory;
+  subCategory?: SubCategory;
+  answerType?: AnswerType;
   problemCount?: number;
   password?: string | null;
   isPrivate?: boolean;
@@ -109,6 +111,17 @@ export async function joinRoom(roomId: string, password?: string) {
       password
     });
     return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function updateRoomInfo(roomId: string, roomInfo: RoomUpdateRequest) {
+  try {
+    const response = await QuizzleAPI.put(`/api/v1/rooms/${roomId}`, roomInfo);
+    // @ts-expect-error response type from QuizzleAPI is not properly typed
+    return response.data;
   } catch (error) {
     console.error(error);
     throw error;

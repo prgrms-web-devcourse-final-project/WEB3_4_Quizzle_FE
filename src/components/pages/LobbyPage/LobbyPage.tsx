@@ -13,7 +13,7 @@ import FriendRequestList from "../../organisms/FirendRequestList.tsx";
 import { Stack } from "@chakra-ui/react";
 import LobbyChat from "../../organisms/Chat/LobbyChat.tsx";
 import useWebSocket from "../../../hooks/webSocket.ts";
-import { useCallback } from "react";
+// import { useCallback } from "react";
 
 const LobbyPage: React.FC = () => {
     const { data: roomListResponse, isLoading: isRoomListLoading, refetch: refetchRoomList } = useQuery({
@@ -37,7 +37,7 @@ const LobbyPage: React.FC = () => {
         staleTime: 0,
     })
 
-    const handleReceiveLobbyMessage = useCallback((message: string) => {
+    const handleReceiveLobbyMessage = (message: string) => {
         console.log("[LobbyPage] receive message:", message);
         const [type, roomId] = message.split(":");
         if (type === "ROOM_CREATED") {
@@ -47,11 +47,11 @@ const LobbyPage: React.FC = () => {
             console.log("[LobbyPage] room deleted:", roomId);
             refetchRoomList(); // TODO- room하나만 삭제
         }
-    }, []);
+    }
 
-    const handleReceiveLobbyUsersMessage = useCallback((message: string) => {
+    const handleReceiveLobbyUsersMessage = (message: string) => {
         console.log("[LobbyPage] receive message:", message);
-    }, []);
+    }
 
     useWebSocket({
         onLobby: handleReceiveLobbyMessage,
